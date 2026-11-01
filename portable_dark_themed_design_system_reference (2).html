@@ -1,0 +1,3238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Design System Reference — Annual Dynamic Primary Colour</title>
+  <!-- Google Fonts: Montserrat & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <!-- Tailwind CSS for outer presentation board layout utilities -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <style id="design-system-stylesheets">
+    /* ==========================================================================
+       1. variables.css — All Design Tokens & Dynamic Annual Colour Model
+       ========================================================================== */
+    :root {
+      /*
+       * ANNUAL DYNAMIC HUE MODEL
+       *
+       * H(d) = mod(
+       *   360(d - 1) / N + B
+       *   - A sin(2π(d - C) / N),
+       *   360
+       * )
+       *
+       * d = Current day of year
+       * N = Number of days in year
+       * A = Sinusoidal warp amplitude
+       * B = Hue rotation offset
+       * C = Warp centre
+       */
+
+      /* Configuration */
+      --year-length: 365;
+      --day-of-year: 349; /* Defaulting to Anchor 2 (Dec 15, 360° Red) to match board screenshots; toggleable to 288 (Oct 15) */
+
+      /* Anchor 1: October 15 */
+      --anchor-day-1: 288;
+      --anchor-hue-1: 330deg;
+
+      /* Anchor 2: December 15 */
+      --anchor-day-2: 349;
+      --anchor-hue-2: 360deg;
+
+      /* Derived warp centre */
+      --warp-center: calc(
+        (var(--anchor-day-1) + var(--anchor-day-2)) / 2
+      );
+
+      /* Unwarped hue at each anchor */
+      --base-hue-1: calc(
+        360deg * (var(--anchor-day-1) - 1) / var(--year-length)
+      );
+
+      --base-hue-2: calc(
+        360deg * (var(--anchor-day-2) - 1) / var(--year-length)
+      );
+
+      /* Sinusoidal values at each anchor */
+      --sin-1: sin(
+        calc(
+          1turn * (var(--anchor-day-1) - var(--warp-center))
+          / var(--year-length)
+        )
+      );
+
+      --sin-2: sin(
+        calc(
+          1turn * (var(--anchor-day-2) - var(--warp-center))
+          / var(--year-length)
+        )
+      );
+
+      /* Calculate amplitude from the two anchors */
+      --warp-amplitude: calc(
+        (
+          var(--base-hue-2) - var(--base-hue-1)
+          - (var(--anchor-hue-2) - var(--anchor-hue-1))
+        )
+        / (var(--sin-2) - var(--sin-1))
+      );
+
+      /* Calculate hue rotation offset */
+      --hue-offset: calc(
+        var(--anchor-hue-1) - var(--base-hue-1)
+        + var(--warp-amplitude) * var(--sin-1)
+      );
+
+      /* Calculate the hue for the current day */
+      --primary-hue: mod(
+        calc(
+          360deg * (var(--day-of-year) - 1) / var(--year-length)
+          + var(--hue-offset)
+          - var(--warp-amplitude) * sin(
+            calc(
+              1turn * (var(--day-of-year) - var(--warp-center))
+              / var(--year-length)
+            )
+          )
+        ),
+        360deg
+      );
+
+      /* Generated primary colour */
+      --color-primary: hsl(var(--primary-hue) 70% 50%);
+
+      /* Static Colours */
+      --color-port-gore: #1b1846;
+      --color-cod-gray: #151719;
+      --color-cod-gray-dark: #0f1011;
+      --color-charade: #2e2e3a;
+      --color-charade-light: #3d3d4d;
+      --color-oslo-gray: #7f878d;
+      --color-iron: #d7d8d9;
+      --color-white: #ffffff;
+      --color-black: #000000;
+
+      /* Primary Colour Variants */
+      --color-primary-hover: color-mix(
+        in srgb,
+        var(--color-primary) 88%,
+        black
+      );
+
+      --color-primary-active: color-mix(
+        in srgb,
+        var(--color-primary) 76%,
+        black
+      );
+
+      --color-primary-subtle: color-mix(
+        in srgb,
+        var(--color-primary) 12%,
+        transparent
+      );
+
+      --color-primary-muted: color-mix(
+        in srgb,
+        var(--color-primary) 45%,
+        var(--color-cod-gray)
+      );
+
+      --color-primary-light: color-mix(
+        in srgb,
+        var(--color-primary) 65%,
+        white
+      );
+
+      /* Fallback for browsers without contrast-color() */
+      --color-primary-contrast: #ffffff;
+      --color-primary-subtle-contrast: #ffffff;
+
+      /* Surfaces */
+      --surface-page: var(--color-cod-gray);
+      --surface-page-dark: var(--color-cod-gray-dark);
+      --surface-card-dark: #1e2227;
+      --surface-card-light: #ffffff;
+      --surface-elevated: var(--color-charade);
+
+      /* Typography */
+      --font-family: 'Montserrat', system-ui, -apple-system, sans-serif;
+      --font-mono: 'JetBrains Mono', 'Fira Code', monospace;
+      --font-size-hero: 3.8125rem;     /* 61px */
+      --font-size-title: 2rem;         /* 32px */
+      --font-size-subtitle: 1.25rem;   /* 20px */
+      --font-size-body: 1rem;          /* 16px */
+      --font-size-small: 0.75rem;      /* 12px */
+      --font-weight-light: 300;
+      --font-weight-regular: 400;
+      --font-weight-medium: 500;
+      --font-weight-semibold: 600;
+      --font-weight-bold: 700;
+      --line-height-tight: 1.2;
+      --line-height-normal: 1.5;
+      --line-height-relaxed: 1.75;
+
+      /* Spacing */
+      --space-1: 0.25rem;  /* 4px */
+      --space-2: 0.5rem;   /* 8px */
+      --space-3: 0.75rem;  /* 12px */
+      --space-4: 1rem;     /* 16px */
+      --space-6: 1.5rem;   /* 24px */
+      --space-8: 2rem;     /* 32px */
+      --space-12: 3rem;    /* 48px */
+
+      /* Border Radius */
+      --radius-none: 0;
+      --radius-small: 4px;
+      --radius-medium: 8px;
+      --radius-card: 16px;
+      --radius-pill: 9999px;
+
+      /* Shadows & Glows */
+      --shadow-card: 0 4px 20px rgba(0, 0, 0, 0.35);
+      --shadow-primary: 0 0 16px color-mix(in srgb, var(--color-primary) 35%, transparent);
+
+      /* Transitions */
+      --transition-default: 0.15s ease-in-out;
+
+      /* Z-Index */
+      --z-header: 1;
+      --z-dropdown: 2;
+      --z-modal: 3;
+
+      /* Icon Colours */
+      --icon-color: var(--color-white);
+      --icon-color-muted: var(--color-oslo-gray);
+      --icon-color-hover: var(--color-primary);
+      --icon-color-active: var(--color-primary-active);
+    }
+
+    @supports (color: contrast-color(red)) {
+      :root {
+        --color-primary-contrast: contrast-color(var(--color-primary));
+        --color-primary-subtle-contrast: contrast-color(var(--color-primary-subtle));
+      }
+    }
+
+    /* ==========================================================================
+       2. base.css — Global Resets & Defaults
+       ========================================================================== */
+    *, *::before, *::after {
+      box-sizing: border-box;
+    }
+
+    ::selection {
+      background: var(--color-primary);
+      color: var(--color-primary-contrast);
+    }
+
+    body, figure, ul, ol {
+      margin: 0;
+      padding: 0;
+    }
+
+    ul, ol {
+      list-style: none;
+    }
+
+    body {
+      font-family: var(--font-family);
+      font-size: var(--font-size-body);
+      font-weight: var(--font-weight-regular);
+      line-height: var(--line-height-normal);
+      color: var(--color-white);
+      background-color: var(--color-cod-gray-dark);
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      overflow-x: hidden;
+    }
+
+    img, picture, video, canvas, svg {
+      display: block;
+      max-width: 100%;
+    }
+
+    input, button, textarea, select {
+      font: inherit;
+    }
+
+    :focus-visible {
+      outline: 2px solid var(--color-primary);
+      outline-offset: 2px;
+    }
+
+    /* ==========================================================================
+       3. utilities.css — Component Utility Classes
+       ========================================================================== */
+
+    /* --- Dividers --- */
+    .divider-accent,
+    .divider-solid,
+    .divider-dashed {
+      border: 0;
+      width: 100%;
+      margin: 0;
+    }
+
+    .divider-accent {
+      height: 2px;
+      background-color: var(--color-primary);
+    }
+
+    .divider-solid {
+      height: 1px;
+      background-color: var(--color-white);
+    }
+
+    .divider- solid-subtle {
+      height: 1px;
+      background-color: var(--color-charade);
+    }
+
+    .divider-dashed {
+      border-top: 2px dashed var(--color-oslo-gray);
+      background: transparent;
+    }
+
+    .divider-vertical {
+      display: inline-block;
+      border-left: 1px solid var(--color-iron);
+      height: 100%;
+      min-height: 1.5rem;
+      align-self: stretch;
+    }
+
+    /* --- Badges & Tags --- */
+    .badge,
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0.45rem 1.25rem;
+      font-family: var(--font-family);
+      font-size: var(--font-size-small);
+      font-weight: var(--font-weight-semibold);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      border-radius: var(--radius-pill);
+      border: 1px solid var(--color-charade-light);
+      background: rgba(255, 255, 255, 0.03);
+      color: var(--color-white);
+      transition: all var(--transition-default);
+      white-space: nowrap;
+      line-height: 1;
+    }
+
+    .badge-neutral,
+    .tag {
+      border-color: var(--color-oslo-gray);
+      background: rgba(46, 46, 58, 0.45);
+      color: var(--color-white);
+    }
+
+    .badge-accent {
+      border-color: var(--color-primary);
+      background: var(--color-primary-subtle);
+      color: var(--color-primary);
+    }
+
+    .badge-active {
+      border-color: var(--color-primary);
+      background: var(--color-primary);
+      color: var(--color-primary-contrast);
+    }
+
+    .badge-inactive {
+      border-color: var(--color-charade);
+      background: var(--color-cod-gray-dark);
+      color: var(--color-oslo-gray);
+    }
+
+    /* --- Cards (Pure Flat Single-Class Flexbox Architecture) --- */
+    .card {
+      display: flex;
+      flex-direction: column;
+      border-radius: var(--radius-card);
+      overflow: hidden;
+      box-shadow: var(--shadow-card);
+      transition: transform var(--transition-default), border-color var(--transition-default), box-shadow var(--transition-default), background-color var(--transition-default);
+      position: relative;
+    }
+
+    .card-reverse {
+      flex-direction: column-reverse;
+    }
+
+    .card-horizontal {
+      flex-direction: row;
+    }
+
+    .card-horizontal-reverse {
+      flex-direction: row-reverse;
+    }
+
+    .card-pad {
+      padding: var(--space-4);
+      gap: var(--space-4);
+    }
+
+    /* Card Surface Variants */
+    .card-dark {
+      background-color: #0b0c0e;
+      border: 1px solid var(--color-charade);
+      color: var(--color-white);
+    }
+
+    .card-dark-accent {
+      background-color: #0b0c0e;
+      border: 1px solid var(--color-charade);
+      border-top: 3px solid var(--color-primary);
+      color: var(--color-white);
+    }
+
+    .card-light {
+      background-color: var(--surface-card-light);
+      border: 1px solid var(--color-iron);
+      color: var(--color-cod-gray-dark);
+    }
+
+    .card-content {
+      display: flex;
+      flex-direction: column;
+      flex: 1;
+      padding: var(--space-6);
+      gap: var(--space-4);
+    }
+
+    .card-media {
+      flex-shrink: 0;
+      flex-grow: 1;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card-media-aside {
+      flex: 0 0 42%;
+    }
+
+    /* --- Media Utilities --- */
+    .aspect-16-9 {
+      aspect-ratio: 16 / 9;
+    }
+
+    .aspect-3-4 {
+      aspect-ratio: 3 / 4;
+    }
+
+    .aspect-1-1 {
+      aspect-ratio: 1 / 1;
+    }
+
+    .media-cover {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .media-rounded-large {
+      border-radius: var(--radius-card);
+      overflow: hidden;
+    }
+
+    .media-rounded-small {
+      border-radius: var(--radius-medium);
+      overflow: hidden;
+    }
+
+    .media-rounded-none {
+      border-radius: var(--radius-none);
+    }
+
+    /* --- Form Elements --- */
+    .form-input {
+      width: 100%;
+      padding: 0.875rem 1.125rem;
+      border-radius: var(--radius-medium);
+      font-size: 0.9375rem;
+      font-weight: var(--font-weight-regular);
+      transition: border-color var(--transition-default), box-shadow var(--transition-default);
+      outline: none;
+    }
+
+    .form-input-light {
+      background-color: var(--color-white);
+      color: var(--color-cod-gray-dark);
+      border: 1px solid var(--color-iron);
+    }
+
+    .form-input-light::placeholder {
+      color: #555b61;
+    }
+
+    .form-input-dark {
+      background-color: var(--color-cod-gray-dark);
+      color: var(--color-white);
+      border: 1px solid var(--color-charade);
+    }
+
+    .form-input-dark::placeholder {
+      color: var(--color-oslo-gray);
+    }
+
+    .form-input:focus {
+      border-color: var(--color-primary);
+      box-shadow: var(--shadow-primary);
+    }
+
+    .form-radio {
+      appearance: none;
+      -webkit-appearance: none;
+      width: 1.375rem;
+      height: 1.375rem;
+      border-radius: 50%;
+      background-color: var(--color-white);
+      border: 2px solid var(--color-white);
+      display: inline-grid;
+      place-content: center;
+      cursor: pointer;
+      accent-color: var(--color-primary);
+      transition: all var(--transition-default);
+      flex-shrink: 0;
+    }
+
+    .form-radio::before {
+      content: "";
+      width: 0.65rem;
+      height: 0.65rem;
+      border-radius: 50%;
+      transform: scale(0);
+      transition: transform var(--transition-default);
+      background-color: var(--color-primary);
+    }
+
+    .form-radio:checked::before {
+      transform: scale(1);
+    }
+
+    .form-radio:focus-visible {
+      outline: 2px solid var(--color-primary);
+      outline-offset: 3px;
+    }
+
+    /* --- Buttons --- */
+    .button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: var(--space-2);
+      padding: 0.85rem 1.6rem;
+      border-radius: var(--radius-pill);
+      font-family: var(--font-family);
+      font-size: var(--font-size-small);
+      font-weight: var(--font-weight-semibold);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      text-decoration: none;
+      cursor: pointer;
+      border: 1px solid transparent;
+      transition: all var(--transition-default);
+      line-height: 1;
+      white-space: nowrap;
+      user-select: none;
+    }
+
+    .button:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+      pointer-events: none;
+    }
+
+    .button-primary {
+      background: var(--color-primary);
+      color: var(--color-primary-contrast);
+      border-color: var(--color-primary);
+    }
+
+    .button-primary:hover:not(:disabled) {
+      background: var(--color-primary-hover);
+      border-color: var(--color-primary-hover);
+      box-shadow: var(--shadow-primary);
+    }
+
+    .button-primary:active:not(:disabled) {
+      background: var(--color-primary-active);
+    }
+
+    .button-white {
+      background: var(--color-white);
+      color: var(--color-black);
+      border-color: var(--color-white);
+    }
+
+    .button-white:hover:not(:disabled) {
+      background: var(--color-iron);
+      border-color: var(--color-iron);
+    }
+
+    .button-dark {
+      background: #1d1e22;
+      color: var(--color-white);
+      border-color: #2e2e3a;
+    }
+
+    .button-dark:hover:not(:disabled) {
+      background: var(--color-charade);
+      border-color: var(--color-charade-light);
+    }
+
+    .button-black {
+      background: var(--color-black);
+      color: var(--color-white);
+      border-color: var(--color-black);
+    }
+
+    .button-black:hover:not(:disabled) {
+      background: #1f2125;
+    }
+
+    .button-outline {
+      background: transparent;
+      color: var(--color-white);
+      border-color: rgba(255, 255, 255, 0.65);
+    }
+
+    .button-outline:hover:not(:disabled) {
+      border-color: var(--color-primary);
+      color: var(--color-primary);
+      background: var(--color-primary-subtle);
+    }
+
+    .button-link {
+      background: transparent;
+      border: none;
+      border-radius: 0;
+      padding: 0.5rem 0;
+      color: var(--color-white);
+      position: relative;
+    }
+
+    .button-link::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: -2px;
+      height: 2px;
+      background: transparent;
+      transition: background var(--transition-default);
+    }
+
+    .button-link:hover::after,
+    .button-link.link-accent-underline::after {
+      background: var(--color-primary);
+    }
+
+    .button-link.link-white-underline::after {
+      background: var(--color-white);
+    }
+
+    .button-small {
+      padding: 0.5rem 1rem;
+      font-size: 0.6875rem;
+    }
+
+    /* --- Icons --- */
+    .icon {
+      display: inline-block;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      flex-shrink: 0;
+      transition: color var(--transition-default), stroke var(--transition-default);
+    }
+
+    .icon-small {
+      width: 1rem;
+      height: 1rem;
+    }
+
+    .icon-medium {
+      width: 1.25rem;
+      height: 1.25rem;
+    }
+
+    .icon-large {
+      width: 1.5rem;
+      height: 1.5rem;
+    }
+
+    .icon-button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 2.5rem;
+      height: 2.5rem;
+      border-radius: var(--radius-pill);
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--color-charade);
+      color: var(--icon-color);
+      cursor: pointer;
+      transition: all var(--transition-default);
+    }
+
+    .icon-button:hover {
+      color: var(--icon-color-hover);
+      border-color: var(--color-primary);
+      background: var(--color-primary-subtle);
+    }
+
+    .icon-button:active {
+      color: var(--icon-color-active);
+    }
+
+    /* --- Pagination --- */
+    .pagination {
+      display: inline-flex;
+      align-items: center;
+      gap: var(--space-2);
+    }
+
+    .pagination-item {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 2.25rem;
+      height: 2.25rem;
+      padding: 0 0.5rem;
+      border-radius: var(--radius-medium);
+      font-size: 0.875rem;
+      font-weight: var(--font-weight-semibold);
+      color: var(--color-white);
+      transition: all var(--transition-default);
+      cursor: pointer;
+    }
+
+    .pagination-item a {
+      color: inherit;
+      text-decoration: none;
+      width: 100%;
+      height: 100%;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .pagination-item:hover:not(.pagination-item-active) {
+      color: var(--color-primary);
+      background: var(--color-primary-subtle);
+    }
+
+    .pagination-item-active {
+      background: var(--color-primary);
+      color: var(--color-primary-contrast);
+      box-shadow: var(--shadow-primary);
+    }
+
+    /* Minimal Board-Style Pagination (Screenshot 4 variant) */
+    .pagination-minimal {
+      display: inline-flex;
+      align-items: center;
+      gap: 1.15rem;
+      font-size: 1.05rem;
+      font-weight: var(--font-weight-semibold);
+    }
+
+    .pagination-minimal button {
+      background: none;
+      border: none;
+      color: var(--color-white);
+      cursor: pointer;
+      padding: 0;
+      font: inherit;
+      transition: color var(--transition-default);
+    }
+
+    .pagination-minimal button.is-active {
+      color: var(--color-primary);
+    }
+
+    .pagination-minimal button:hover {
+      color: var(--color-primary-light);
+    }
+
+    /* ==========================================================================
+       4. Presentation Board Framing & Background Mesh
+       ========================================================================== */
+    .board-bg {
+      background-color: #08090b;
+      background-image:
+        radial-gradient(circle at 12% 18%, color-mix(in srgb, var(--color-primary) 16%, transparent) 0%, transparent 38%),
+        radial-gradient(circle at 88% 42%, color-mix(in srgb, var(--color-primary) 12%, transparent) 0%, transparent 42%),
+        radial-gradient(circle at 50% 85%, rgba(27, 24, 70, 0.45) 0%, transparent 50%),
+        radial-gradient(color-mix(in srgb, var(--color-primary) 38%, rgba(255,255,255,0.08)) 1px, transparent 1px);
+      background-size: 100% 100%, 100% 100%, 100% 100%, 24px 24px;
+    }
+
+    .bento-panel {
+      background: rgba(13, 14, 17, 0.94);
+      border: 1px solid var(--color-charade);
+      border-radius: 24px;
+      padding: 2rem;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.65);
+      backdrop-filter: blur(12px);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .bento-header {
+      font-size: 1rem;
+      font-weight: var(--font-weight-bold);
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--color-white);
+      margin-bottom: 1.75rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 0.75rem;
+    }
+
+    .bento-header .sec-num {
+      color: var(--color-primary);
+      margin-right: 0.35rem;
+    }
+
+    /* Custom Range Slider */
+    input[type="range"].hue-slider {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 100%;
+      height: 8px;
+      border-radius: 999px;
+      background: var(--color-charade);
+      outline: none;
+      cursor: pointer;
+    }
+
+    input[type="range"].hue-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: var(--color-primary);
+      border: 2px solid var(--color-white);
+      box-shadow: 0 0 12px var(--color-primary);
+      cursor: grab;
+      transition: transform 0.1s ease;
+    }
+
+    input[type="range"].hue-slider::-webkit-slider-thumb:active {
+      cursor: grabbing;
+      transform: scale(1.15);
+    }
+
+    /* Swatch Card Hover */
+    .swatch-btn {
+      transition: transform 0.15s ease, border-color 0.15s ease;
+    }
+    .swatch-btn:hover {
+      transform: translateY(-2px);
+      border-color: var(--color-primary);
+    }
+  </style>
+</head>
+<body class="board-bg min-h-screen pb-20">
+
+  <!-- ========================================================================
+       INLINE SVG SPRITE SHEET (Referenced via <use href="#icon-...">)
+       ======================================================================== -->
+  <svg xmlns="http://www.w3.org/2000/svg" style="display: none;" aria-hidden="true">
+    <symbol id="icon-search" viewBox="0 0 24 24">
+      <circle cx="11" cy="11" r="7"></circle>
+      <line x1="20" y1="20" x2="16.35" y2="16.35"></line>
+    </symbol>
+    <symbol id="icon-arrow-right" viewBox="0 0 24 24">
+      <line x1="5" y1="12" x2="19" y2="12"></line>
+      <polyline points="13 6 19 12 13 18"></polyline>
+    </symbol>
+    <symbol id="icon-arrow-left" viewBox="0 0 24 24">
+      <line x1="19" y1="12" x2="5" y2="12"></line>
+      <polyline points="11 18 5 12 11 6"></polyline>
+    </symbol>
+    <symbol id="icon-plus" viewBox="0 0 24 24">
+      <line x1="12" y1="5" x2="12" y2="19"></line>
+      <line x1="5" y1="12" x2="19" y2="12"></line>
+    </symbol>
+    <symbol id="icon-chevron-down" viewBox="0 0 24 24">
+      <polyline points="6 9 12 15 18 9"></polyline>
+    </symbol>
+    <symbol id="icon-menu" viewBox="0 0 24 24">
+      <line x1="4" y1="7" x2="20" y2="7"></line>
+      <line x1="4" y1="12" x2="20" y2="12"></line>
+      <line x1="4" y1="17" x2="20" y2="17"></line>
+    </symbol>
+    <symbol id="icon-settings" viewBox="0 0 24 24">
+      <circle cx="12" cy="12" r="3"></circle>
+      <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+    </symbol>
+    <symbol id="icon-x" viewBox="0 0 24 24">
+      <line x1="18" y1="6" x2="6" y2="18"></line>
+      <line x1="6" y1="6" x2="18" y2="18"></line>
+    </symbol>
+    <symbol id="icon-copy" viewBox="0 0 24 24">
+      <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+      <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+    </symbol>
+    <symbol id="icon-play" viewBox="0 0 24 24">
+      <polygon points="5 3 19 12 5 21 5 3" fill="currentColor"></polygon>
+    </symbol>
+    <symbol id="icon-pause" viewBox="0 0 24 24">
+      <rect x="6" y="4" width="4" height="16" fill="currentColor"></rect>
+      <rect x="14" y="4" width="4" height="16" fill="currentColor"></rect>
+    </symbol>
+  </svg>
+
+  <!-- ========================================================================
+       STICKY DYNAMIC HUE TIME-MACHINE CONTROLLER BAR
+       ======================================================================== -->
+  <header class="sticky top-0 z-50 border-b border-[#2e2e3a] bg-[#0f1011]/90 backdrop-blur-xl">
+    <div class="max-w-[1440px] mx-auto px-4 sm:px-8 py-3 flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4">
+      <!-- Brand & Live Token Pill -->
+      <div class="flex items-center justify-between lg:justify-start gap-4">
+        <div class="flex items-center gap-3">
+          <div id="header-live-orb" class="w-9 h-9 rounded-full flex items-center justify-center font-mono text-xs font-bold shadow-lg transition-colors" style="background: var(--color-primary); color: var(--color-primary-contrast); box-shadow: var(--shadow-primary);">
+            H(d)
+          </div>
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="font-bold tracking-wider uppercase text-sm">Design System Reference</span>
+              <span class="badge badge-accent !py-1 !px-2.5 !text-[10px]" id="header-hue-badge">360.0°</span>
+            </div>
+            <p class="text-xs text-[#7f878d] font-mono">
+              tokens.css · <span id="header-date-label" class="text-[#d7d8d9]">Dec 15 (Day 349 / 365)</span> · <span id="header-hex-label" class="text-white">#d92626</span>
+            </p>
+          </div>
+        </div>
+
+        <!-- Auto-Cycle Play Button (Mobile right) -->
+        <button id="btn-autoplay" type="button" class="button button-primary button-small lg:hidden">
+          <svg class="icon icon-small" aria-hidden="true"><use href="#icon-play"></use></svg>
+          <span>Cycle Year</span>
+        </button>
+      </div>
+
+      <!-- Interactive Day-of-Year Scrubber & Presets -->
+      <div class="flex-1 max-w-3xl flex flex-col gap-2">
+        <div class="flex items-center gap-3">
+          <span class="text-[11px] font-mono uppercase text-[#7f878d] whitespace-nowrap">Day <strong id="scrubber-day-num" class="text-white">349</strong></span>
+          <input id="input-day-slider" type="range" min="1" max="365" value="349" class="hue-slider" aria-label="Day of year">
+          <input id="input-date-picker" type="date" value="2026-12-15" class="bg-[#151719] border border-[#2e2e3a] rounded px-2 py-1 text-xs font-mono text-white focus:border-[var(--color-primary)] outline-none" aria-label="Select calendar date">
+          <label class="inline-flex items-center gap-1.5 text-xs font-mono text-[#d7d8d9] cursor-pointer whitespace-nowrap select-none" title="Toggle 366-day leap year">
+            <input id="input-leap-toggle" type="checkbox" class="accent-[var(--color-primary)] rounded cursor-pointer">
+            <span>Leap (366)</span>
+          </label>
+        </div>
+
+        <!-- Preset Pills -->
+        <div class="flex flex-wrap items-center gap-1.5">
+          <span class="text-[10px] font-mono uppercase text-[#7f878d] mr-1">Anchors & Presets:</span>
+          <button type="button" data-preset-day="349" class="preset-pill text-[11px] font-mono px-2.5 py-0.5 rounded-full border border-[#3d3d4d] bg-[#151719] hover:border-[var(--color-primary)] transition">
+            Anchor 2: Dec 15 (d=349 · 360° Red)
+          </button>
+          <button type="button" data-preset-day="288" class="preset-pill text-[11px] font-mono px-2.5 py-0.5 rounded-full border border-[#3d3d4d] bg-[#151719] hover:border-[var(--color-primary)] transition">
+            Anchor 1: Oct 15 (d=288 · 330° Pink)
+          </button>
+          <button type="button" data-preset-day="318.5" class="preset-pill text-[11px] font-mono px-2.5 py-0.5 rounded-full border border-[#3d3d4d] bg-[#151719] hover:border-[var(--color-primary)] transition">
+            Warp Centre C (d=318.5)
+          </button>
+          <button type="button" data-preset-day="today" class="preset-pill text-[11px] font-mono px-2.5 py-0.5 rounded-full border border-[#3d3d4d] bg-[#151719] hover:border-[var(--color-primary)] transition">
+            Today
+          </button>
+          <button type="button" data-preset-day="80" class="preset-pill text-[11px] font-mono px-2.5 py-0.5 rounded-full border border-[#3d3d4d] bg-[#151719] hover:border-[var(--color-primary)] transition">
+            Equinox (d=80)
+          </button>
+          <button type="button" data-preset-day="172" class="preset-pill text-[11px] font-mono px-2.5 py-0.5 rounded-full border border-[#3d3d4d] bg-[#151719] hover:border-[var(--color-primary)] transition">
+            Solstice (d=172)
+          </button>
+        </div>
+      </div>
+
+      <!-- Desktop Auto-Play Button -->
+      <div class="hidden lg:flex items-center gap-2">
+        <button id="btn-autoplay-desktop" type="button" class="button button-primary button-small">
+          <svg id="autoplay-icon-desktop" class="icon icon-small" aria-hidden="true"><use href="#icon-play"></use></svg>
+          <span id="autoplay-label-desktop">Auto-Cycle Year</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ========================================================================
+       MAIN PRESENTATION BOARD CONTAINER
+       ======================================================================== -->
+  <main class="max-w-[1440px] mx-auto px-4 sm:px-8 pt-8 space-y-8">
+
+    <!-- HERO / ARCHITECTURE OVERVIEW BANNER -->
+    <section class="bento-panel !p-6 sm:!p-8 border-t-2" style="border-top-color: var(--color-primary);">
+      <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+        <div class="max-w-3xl space-y-2">
+          <div class="flex flex-wrap items-center gap-2">
+            <span class="badge badge-active">Portable Dark-Themed CSS System</span>
+            <span class="badge badge-neutral">Montserrat</span>
+            <span class="badge badge-accent">contrast-color()</span>
+          </div>
+          <h1 class="text-2xl sm:text-4xl font-semibold tracking-tight text-white">
+            Mathematically Generated Annual Primary Colour
+          </h1>
+          <p class="text-sm sm:text-base text-[#7f878d] leading-relaxed">
+            Every accent, glow, focus ring, divider, and interactive contrast token on this board is driven in real time by the sinusoidal day-of-year model <code class="font-mono text-white bg-[#151719] px-1.5 py-0.5 rounded border border-[#2e2e3a]">H(d) = mod(360(d-1)/N + B - A·sin(2π(d-C)/N), 360)</code>. Drag the timeline above or click any token to copy its CSS variable.
+          </p>
+        </div>
+
+        <!-- File Structure Tree Card -->
+        <div class="bg-[#0b0c0e] border border-[#2e2e3a] rounded-xl p-4 font-mono text-xs shrink-0">
+          <div class="text-[11px] uppercase tracking-wider text-[#7f878d] mb-2 flex items-center justify-between">
+            <span>Entry Point Architecture</span>
+            <span class="text-[var(--color-primary)]">styles/tokens.css</span>
+          </div>
+          <pre class="text-[#d7d8d9] leading-relaxed">styles/
+├── <span class="text-[var(--color-primary)] font-semibold">tokens.css</span>      <span class="text-[#7f878d]">← @import entry point</span>
+├── variables.css   <span class="text-[#7f878d]">← tokens &amp; dynamic H(d)</span>
+├── base.css        <span class="text-[#7f878d]">← global resets</span>
+└── utilities.css   <span class="text-[#7f878d]">← component classes</span></pre>
+        </div>
+      </div>
+
+      <!-- Full-Year 365-Day Spectrum Ribbon (Click anywhere on ribbon to jump day) -->
+      <div class="mt-6 pt-5 border-t border-[#2e2e3a]">
+        <div class="flex items-center justify-between text-xs font-mono text-[#7f878d] mb-2">
+          <span>ANNUAL HUE SPECTRUM RIBBON (CLICK OR DRAG TO SCRUB DAY 1 → <span id="ribbon-max-days">365</span>)</span>
+          <span id="ribbon-readout" class="text-white">H(349) = 360.0°</span>
+        </div>
+        <div id="spectrum-ribbon-container" class="relative h-7 rounded-lg overflow-hidden border border-[#2e2e3a] cursor-pointer select-none">
+          <canvas id="spectrum-ribbon-canvas" class="w-full h-full block"></canvas>
+          <!-- Marker for Anchor 1 -->
+          <div id="ribbon-marker-a1" class="absolute top-0 bottom-0 w-0.5 bg-white/80 pointer-events-none" style="left: 78.6%;" title="Anchor 1: Oct 15 (d=288)">
+            <span class="absolute -top-0.5 left-1 text-[9px] font-mono bg-black/80 text-white px-1 rounded">A1</span>
+          </div>
+          <!-- Marker for Anchor 2 -->
+          <div id="ribbon-marker-a2" class="absolute top-0 bottom-0 w-0.5 bg-white/80 pointer-events-none" style="left: 95.3%;" title="Anchor 2: Dec 15 (d=349)">
+            <span class="absolute -top-0.5 right-1 text-[9px] font-mono bg-black/80 text-white px-1 rounded">A2</span>
+          </div>
+          <!-- Live Playhead -->
+          <div id="ribbon-playhead" class="absolute top-0 bottom-0 w-1 bg-white shadow-[0_0_10px_#fff] pointer-events-none transition-all duration-75" style="left: 95.3%;"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================================================================
+         SECTION 01: DYNAMIC PRIMARY COLOUR MATHEMATICAL MODEL
+         ====================================================================== -->
+    <section class="bento-panel" aria-labelledby="heading-01">
+      <div class="bento-header">
+        <h2 id="heading-01"><span class="sec-num">01.</span>DYNAMIC PRIMARY COLOUR MODEL</h2>
+        <span class="text-xs font-mono text-[#7f878d]">SINUSOIDAL WARP SOLVER</span>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        <!-- Left 7 Cols: Interactive SVG Curve Plot -->
+        <div class="lg:col-span-7 bg-[#090a0c] border border-[#2e2e3a] rounded-2xl p-4 sm:p-6">
+          <div class="flex flex-wrap items-center justify-between gap-2 mb-4">
+            <div>
+              <h3 class="text-sm font-semibold text-white">Annual Hue Trajectory <span class="font-mono text-xs text-[var(--color-primary)]">H(d) vs Unwarped Linear</span></h3>
+              <p class="text-xs text-[#7f878d]">Click anywhere on the graph to set <code class="font-mono text-[#d7d8d9]">--day-of-year</code></p>
+            </div>
+            <div class="flex items-center gap-4 text-xs font-mono">
+              <span class="inline-flex items-center gap-1.5">
+                <span class="w-3 h-0.5 inline-block" style="background: var(--color-primary);"></span>
+                <span>Warped H(d)</span>
+              </span>
+              <span class="inline-flex items-center gap-1.5 text-[#7f878d]">
+                <span class="w-3 h-0.5 inline-block border-t border-dashed border-[#7f878d]"></span>
+                <span>Linear 360(d-1)/N</span>
+              </span>
+            </div>
+          </div>
+
+          <!-- Interactive SVG Plot -->
+          <div class="relative w-full aspect-[16/9]">
+            <svg id="hue-curve-svg" viewBox="0 0 640 340" class="w-full h-full overflow-visible cursor-crosshair select-none" role="img" aria-label="Interactive annual hue curve graph">
+              <title>Annual Dynamic Hue Mathematical Curve</title>
+              <!-- Grid Lines -->
+              <g stroke="#1e2227" stroke-width="1">
+                <line x1="50" y1="20" x2="610" y2="20"></line>
+                <line x1="50" y1="90" x2="610" y2="90"></line>
+                <line x1="50" y1="160" x2="610" y2="160"></line>
+                <line x1="50" y1="230" x2="610" y2="230"></line>
+                <line x1="50" y1="300" x2="610" y2="300"></line>
+                <!-- Vertical Day Grid -->
+                <line x1="50" y1="20" x2="50" y2="300"></line>
+                <line x1="190" y1="20" x2="190" y2="300"></line>
+                <line x1="330" y1="20" x2="330" y2="300"></line>
+                <line x1="470" y1="20" x2="470" y2="300"></line>
+                <line x1="610" y1="20" x2="610" y2="300"></line>
+              </g>
+
+              <!-- Y-Axis Labels (Hue 0° - 360°) -->
+              <g fill="#7f878d" font-family="JetBrains Mono, monospace" font-size="10" text-anchor="end">
+                <text x="42" y="24">360°</text>
+                <text x="42" y="94">270°</text>
+                <text x="42" y="164">180°</text>
+                <text x="42" y="234">90°</text>
+                <text x="42" y="304">0°</text>
+              </g>
+
+              <!-- X-Axis Labels (Days) -->
+              <g fill="#7f878d" font-family="JetBrains Mono, monospace" font-size="10" text-anchor="middle">
+                <text x="50" y="322">d=1 (Jan 1)</text>
+                <text x="190" y="322">d=92</text>
+                <text x="330" y="322">d=183</text>
+                <text x="470" y="322">d=274</text>
+                <text x="610" y="322">d=365</text>
+              </g>
+
+              <!-- Warp Centre Vertical Line -->
+              <line id="svg-warp-center-line" x1="538" y1="20" x2="538" y2="300" stroke="#3d3d4d" stroke-width="1" stroke-dasharray="3 3"></line>
+              <text id="svg-warp-center-label" x="538" y="14" fill="#7f878d" font-family="JetBrains Mono, monospace" font-size="9" text-anchor="middle">C=318.5</text>
+
+              <!-- Unwarped Base Linear Path -->
+              <path id="svg-linear-path" d="" fill="none" stroke="#7f878d" stroke-width="1.5" stroke-dasharray="5 5" opacity="0.65"></path>
+
+              <!-- Sinusoidal Warped Path -->
+              <path id="svg-warped-path" d="" fill="none" stroke="var(--color-primary)" stroke-width="3"></path>
+
+              <!-- Anchor 1 Point -->
+              <circle id="svg-anchor-1" cx="490" cy="43" r="5" fill="#ff3399" stroke="#ffffff" stroke-width="2"></circle>
+              <text id="svg-anchor-1-label" x="482" y="38" fill="#d7d8d9" font-family="JetBrains Mono, monospace" font-size="10" text-anchor="end">A1 (288, 330°)</text>
+
+              <!-- Anchor 2 Point -->
+              <circle id="svg-anchor-2" cx="585" cy="20" r="5" fill="#ff1a1a" stroke="#ffffff" stroke-width="2"></circle>
+              <text id="svg-anchor-2-label" x="578" y="36" fill="#d7d8d9" font-family="JetBrains Mono, monospace" font-size="10" text-anchor="end">A2 (349, 360°)</text>
+
+              <!-- Current Day Playhead Crosshair -->
+              <line id="svg-playhead-x" x1="585" y1="20" x2="585" y2="300" stroke="var(--color-primary)" stroke-width="1.5" stroke-dasharray="2 2"></line>
+              <line id="svg-playhead-y" x1="50" y1="20" x2="610" y2="20" stroke="var(--color-primary)" stroke-width="1.5" stroke-dasharray="2 2"></line>
+              <circle id="svg-playhead-dot" cx="585" cy="20" r="7" fill="var(--color-primary)" stroke="#ffffff" stroke-width="2.5"></circle>
+            </svg>
+          </div>
+        </div>
+
+        <!-- Right 5 Cols: Live Telemetry & Anchor Configurator -->
+        <div class="lg:col-span-5 space-y-5">
+          <!-- Formula Box -->
+          <div class="bg-[#090a0c] border border-[#2e2e3a] rounded-2xl p-5 space-y-3">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-mono uppercase tracking-wider text-[#7f878d]">Mathematical Formulation</span>
+              <button id="btn-reset-anchors" type="button" class="text-xs font-mono text-[var(--color-primary)] hover:underline">Reset Default Anchors</button>
+            </div>
+            <div class="p-3 rounded-lg bg-[#151719] border border-[#2e2e3a] font-mono text-xs text-white leading-relaxed overflow-x-auto">
+              H(d) = mod(360(d − 1)/N + B − A·sin(2π(d − C)/N), 360)
+            </div>
+
+            <!-- Anchor Inputs -->
+            <div class="grid grid-cols-2 gap-3 pt-1">
+              <div class="p-3 rounded-xl bg-[#151719]/70 border border-[#2e2e3a]">
+                <div class="text-[11px] font-semibold text-white mb-2 flex items-center justify-between">
+                  <span>Anchor 1 (Oct 15)</span>
+                  <span class="w-2.5 h-2.5 rounded-full" style="background: hsl(330 70% 50%);"></span>
+                </div>
+                <div class="grid grid-cols-2 gap-2 text-xs font-mono">
+                  <label class="block">
+                    <span class="text-[10px] text-[#7f878d] block">Day d₁</span>
+                    <input id="input-a1-day" type="number" min="1" max="366" value="288" class="w-full mt-0.5 bg-[#0f1011] border border-[#2e2e3a] rounded px-2 py-1 text-white">
+                  </label>
+                  <label class="block">
+                    <span class="text-[10px] text-[#7f878d] block">Hue H₁ (°)</span>
+                    <input id="input-a1-hue" type="number" min="0" max="360" value="330" class="w-full mt-0.5 bg-[#0f1011] border border-[#2e2e3a] rounded px-2 py-1 text-white">
+                  </label>
+                </div>
+              </div>
+
+              <div class="p-3 rounded-xl bg-[#151719]/70 border border-[#2e2e3a]">
+                <div class="text-[11px] font-semibold text-white mb-2 flex items-center justify-between">
+                  <span>Anchor 2 (Dec 15)</span>
+                  <span class="w-2.5 h-2.5 rounded-full" style="background: hsl(360 70% 50%);"></span>
+                </div>
+                <div class="grid grid-cols-2 gap-2 text-xs font-mono">
+                  <label class="block">
+                    <span class="text-[10px] text-[#7f878d] block">Day d₂</span>
+                    <input id="input-a2-day" type="number" min="1" max="366" value="349" class="w-full mt-0.5 bg-[#0f1011] border border-[#2e2e3a] rounded px-2 py-1 text-white">
+                  </label>
+                  <label class="block">
+                    <span class="text-[10px] text-[#7f878d] block">Hue H₂ (°)</span>
+                    <input id="input-a2-hue" type="number" min="0" max="360" value="360" class="w-full mt-0.5 bg-[#0f1011] border border-[#2e2e3a] rounded px-2 py-1 text-white">
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <!-- Derived Parameters Readout Table -->
+            <div class="grid grid-cols-2 sm:grid-cols-3 gap-2 pt-2 font-mono text-xs">
+              <div class="p-2.5 rounded-lg bg-[#151719] border border-[#2e2e3a]">
+                <span class="text-[10px] text-[#7f878d] block">--warp-center (C)</span>
+                <strong id="math-c" class="text-white">318.5</strong>
+              </div>
+              <div class="p-2.5 rounded-lg bg-[#151719] border border-[#2e2e3a]">
+                <span class="text-[10px] text-[#7f878d] block">--warp-amplitude (A)</span>
+                <strong id="math-a" class="text-white">30.09°</strong>
+              </div>
+              <div class="p-2.5 rounded-lg bg-[#151719] border border-[#2e2e3a]">
+                <span class="text-[10px] text-[#7f878d] block">--hue-offset (B)</span>
+                <strong id="math-b" class="text-white">31.85°</strong>
+              </div>
+              <div class="p-2.5 rounded-lg bg-[#151719] border border-[#2e2e3a]">
+                <span class="text-[10px] text-[#7f878d] block">--base-hue-1 / 2</span>
+                <strong id="math-base" class="text-white">283.1° / 343.2°</strong>
+              </div>
+              <div class="p-2.5 rounded-lg bg-[#151719] border border-[#2e2e3a]">
+                <span class="text-[10px] text-[#7f878d] block">--primary-hue H(d)</span>
+                <strong id="math-hd" class="text-[var(--color-primary)]">360.00°</strong>
+              </div>
+              <div class="p-2.5 rounded-lg bg-[#151719] border border-[#2e2e3a]">
+                <span class="text-[10px] text-[#7f878d] block">--color-primary</span>
+                <strong id="math-hsl" class="text-white">hsl(360 70% 50%)</strong>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================================================================
+         SECTION 02: COLOURS, VARIANTS, CONTRAST & SURFACES
+         ====================================================================== -->
+    <section class="bento-panel" aria-labelledby="heading-02">
+      <div class="bento-header">
+        <h2 id="heading-02"><span class="sec-num">02.</span>COLOURS, VARIANTS &amp; AUTOMATIC CONTRAST</h2>
+        <span class="text-xs font-mono text-[#7f878d]">CLICK ANY SWATCH TO COPY TOKEN</span>
+      </div>
+
+      <div class="space-y-8">
+        <!-- Dynamic Primary & color-mix() Variants -->
+        <div>
+          <h3 class="text-xs font-mono uppercase tracking-wider text-[#7f878d] mb-3">Dynamic Primary &amp; <code class="text-white">color-mix(in srgb, ...)</code> Derived Variants</h3>
+          <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+            <button type="button" data-copy="var(--color-primary)" class="swatch-btn text-left rounded-2xl overflow-hidden border border-[#2e2e3a] bg-[#151719]">
+              <div class="h-20 w-full flex items-end p-3 font-mono text-[11px] font-semibold" style="background: var(--color-primary); color: var(--color-primary-contrast);">
+                <span id="swatch-primary-hex">#D92626</span>
+              </div>
+              <div class="p-3">
+                <div class="font-mono text-xs text-white font-semibold truncate">--color-primary</div>
+                <div class="text-[11px] text-[#7f878d] mt-0.5">hsl(var(--primary-hue) 70% 50%)</div>
+              </div>
+            </button>
+
+            <button type="button" data-copy="var(--color-primary-hover)" class="swatch-btn text-left rounded-2xl overflow-hidden border border-[#2e2e3a] bg-[#151719]">
+              <div class="h-20 w-full flex items-end p-3 font-mono text-[11px]" style="background: var(--color-primary-hover); color: var(--color-primary-contrast);">
+                88% + black
+              </div>
+              <div class="p-3">
+                <div class="font-mono text-xs text-white font-semibold truncate">--color-primary-hover</div>
+                <div class="text-[11px] text-[#7f878d] mt-0.5">color-mix(88%, black)</div>
+              </div>
+            </button>
+
+            <button type="button" data-copy="var(--color-primary-active)" class="swatch-btn text-left rounded-2xl overflow-hidden border border-[#2e2e3a] bg-[#151719]">
+              <div class="h-20 w-full flex items-end p-3 font-mono text-[11px]" style="background: var(--color-primary-active); color: var(--color-primary-contrast);">
+                76% + black
+              </div>
+              <div class="p-3">
+                <div class="font-mono text-xs text-white font-semibold truncate">--color-primary-active</div>
+                <div class="text-[11px] text-[#7f878d] mt-0.5">color-mix(76%, black)</div>
+              </div>
+            </button>
+
+            <button type="button" data-copy="var(--color-primary-subtle)" class="swatch-btn text-left rounded-2xl overflow-hidden border border-[#2e2e3a] bg-[#151719]">
+              <div class="h-20 w-full flex items-end p-3 font-mono text-[11px]" style="background: var(--color-primary-subtle); color: var(--color-primary-subtle-contrast);">
+                12% + transparent
+              </div>
+              <div class="p-3">
+                <div class="font-mono text-xs text-white font-semibold truncate">--color-primary-subtle</div>
+                <div class="text-[11px] text-[#7f878d] mt-0.5">color-mix(12%, transparent)</div>
+              </div>
+            </button>
+
+            <button type="button" data-copy="var(--color-primary-muted)" class="swatch-btn text-left rounded-2xl overflow-hidden border border-[#2e2e3a] bg-[#151719]">
+              <div class="h-20 w-full flex items-end p-3 font-mono text-[11px] text-white" style="background: var(--color-primary-muted);">
+                45% + cod-gray
+              </div>
+              <div class="p-3">
+                <div class="font-mono text-xs text-white font-semibold truncate">--color-primary-muted</div>
+                <div class="text-[11px] text-[#7f878d] mt-0.5">color-mix(45%, cod-gray)</div>
+              </div>
+            </button>
+
+            <button type="button" data-copy="var(--color-primary-light)" class="swatch-btn text-left rounded-2xl overflow-hidden border border-[#2e2e3a] bg-[#151719]">
+              <div class="h-20 w-full flex items-end p-3 font-mono text-[11px] text-black" style="background: var(--color-primary-light);">
+                65% + white
+              </div>
+              <div class="p-3">
+                <div class="font-mono text-xs text-white font-semibold truncate">--color-primary-light</div>
+                <div class="text-[11px] text-[#7f878d] mt-0.5">color-mix(65%, white)</div>
+              </div>
+            </button>
+          </div>
+        </div>
+
+        <!-- Automatic Contrast-Color() Live Validator -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="rounded-2xl p-5 border border-[#2e2e3a] flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-colors" style="background: var(--color-primary); color: var(--color-primary-contrast);">
+            <div>
+              <span class="text-[11px] font-mono uppercase tracking-wider opacity-80">--color-primary-contrast</span>
+              <h4 class="text-lg font-bold mt-0.5">Automatic Foreground Selection</h4>
+              <p class="text-xs opacity-90 mt-1">Uses <code class="font-mono">contrast-color(var(--color-primary))</code> with relative-luminance sync.</p>
+            </div>
+            <div class="bg-black/20 backdrop-blur-sm rounded-xl p-3 font-mono text-xs shrink-0">
+              <div>Selected: <strong id="contrast-selected-token">#ffffff</strong></div>
+              <div class="mt-1">vs White: <span id="contrast-ratio-white">4.12:1</span></div>
+              <div>vs Black: <span id="contrast-ratio-black">5.10:1</span></div>
+            </div>
+          </div>
+
+          <div class="rounded-2xl p-5 border border-[var(--color-primary)] flex flex-col sm:flex-row sm:items-center justify-between gap-4" style="background: var(--color-primary-subtle); color: var(--color-primary-subtle-contrast);">
+            <div>
+              <span class="text-[11px] font-mono uppercase tracking-wider text-[var(--color-primary)]">--color-primary-subtle-contrast</span>
+              <h4 class="text-lg font-bold mt-0.5">Subtle Surface Contrast</h4>
+              <p class="text-xs text-[#d7d8d9] mt-1">12% primary mixed with transparent over dark foundation.</p>
+            </div>
+            <div class="bg-[#0f1011]/80 border border-[#2e2e3a] rounded-xl p-3 font-mono text-xs shrink-0 text-white">
+              <div>Token: <strong>#ffffff</strong></div>
+              <div class="text-[#7f878d] mt-1">Surface: 12% α</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Static Foundation Colours & Surface Tokens -->
+        <div>
+          <h3 class="text-xs font-mono uppercase tracking-wider text-[#7f878d] mb-3">Static Foundation Colours &amp; Surface Tokens</h3>
+          <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-9 gap-3">
+            <button type="button" data-copy="var(--color-port-gore)" class="swatch-btn text-left rounded-xl overflow-hidden border border-[#2e2e3a] bg-[#151719]">
+              <div class="h-14 w-full" style="background: var(--color-port-gore);"></div>
+              <div class="p-2.5">
+                <div class="font-mono text-[11px] text-white font-semibold truncate">--color-port-gore</div>
+                <div class="font-mono text-[10px] text-[#7f878d]">#1b1846 · Deep navy</div>
+              </div>
+            </button>
+            <button type="button" data-copy="var(--color-cod-gray)" class="swatch-btn text-left rounded-xl overflow-hidden border border-[#2e2e3a] bg-[#151719]">
+              <div class="h-14 w-full" style="background: var(--color-cod-gray);"></div>
+              <div class="p-2.5">
+                <div class="font-mono text-[11px] text-white font-semibold truncate">--color-cod-gray</div>
+                <div class="font-mono text-[10px] text-[#7f878d]">#151719 · Page bg</div>
+              </div>
+            </button>
+            <button type="button" data-copy="var(--color-cod-gray-dark)" class="swatch-btn text-left rounded-xl overflow-hidden border border-[#2e2e3a] bg-[#151719]">
+              <div class="h-14 w-full" style="background: var(--color-cod-gray-dark);"></div>
+              <div class="p-2.5">
+                <div class="font-mono text-[11px] text-white font-semibold truncate">--color-cod-gray-dark</div>
+                <div class="font-mono text-[10px] text-[#7f878d]">#0f1011 · Darker</div>
+              </div>
+            </button>
+            <button type="button" data-copy="var(--color-charade)" class="swatch-btn text-left rounded-xl overflow-hidden border border-[#2e2e3a] bg-[#151719]">
+              <div class="h-14 w-full" style="background: var(--color-charade);"></div>
+              <div class="p-2.5">
+                <div class="font-mono text-[11px] text-white font-semibold truncate">--color-charade</div>
+                <div class="font-mono text-[10px] text-[#7f878d]">#2e2e3a · Borders</div>
+              </div>
+            </button>
+            <button type="button" data-copy="var(--color-charade-light)" class="swatch-btn text-left rounded-xl overflow-hidden border border-[#2e2e3a] bg-[#151719]">
+              <div class="h-14 w-full" style="background: var(--color-charade-light);"></div>
+              <div class="p-2.5">
+                <div class="font-mono text-[11px] text-white font-semibold truncate">--color-charade-light</div>
+                <div class="font-mono text-[10px] text-[#7f878d]">#3d3d4d · Subtle</div>
+              </div>
+            </button>
+            <button type="button" data-copy="var(--color-oslo-gray)" class="swatch-btn text-left rounded-xl overflow-hidden border border-[#2e2e3a] bg-[#151719]">
+              <div class="h-14 w-full" style="background: var(--color-oslo-gray);"></div>
+              <div class="p-2.5">
+                <div class="font-mono text-[11px] text-white font-semibold truncate">--color-oslo-gray</div>
+                <div class="font-mono text-[10px] text-[#7f878d]">#7f878d · Muted text</div>
+              </div>
+            </button>
+            <button type="button" data-copy="var(--color-iron)" class="swatch-btn text-left rounded-xl overflow-hidden border border-[#2e2e3a] bg-[#151719]">
+              <div class="h-14 w-full" style="background: var(--color-iron);"></div>
+              <div class="p-2.5">
+                <div class="font-mono text-[11px] text-white font-semibold truncate">--color-iron</div>
+                <div class="font-mono text-[10px] text-[#7f878d]">#d7d8d9 · Light text</div>
+              </div>
+            </button>
+            <button type="button" data-copy="var(--color-white)" class="swatch-btn text-left rounded-xl overflow-hidden border border-[#2e2e3a] bg-[#151719]">
+              <div class="h-14 w-full" style="background: var(--color-white);"></div>
+              <div class="p-2.5">
+                <div class="font-mono text-[11px] text-white font-semibold truncate">--color-white</div>
+                <div class="font-mono text-[10px] text-[#7f878d]">#ffffff · Primary text</div>
+              </div>
+            </button>
+            <button type="button" data-copy="var(--color-black)" class="swatch-btn text-left rounded-xl overflow-hidden border border-[#2e2e3a] bg-[#151719]">
+              <div class="h-14 w-full border-b border-[#2e2e3a]" style="background: var(--color-black);"></div>
+              <div class="p-2.5">
+                <div class="font-mono text-[11px] text-white font-semibold truncate">--color-black</div>
+                <div class="font-mono text-[10px] text-[#7f878d]">#000000 · Black</div>
+              </div>
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================================================================
+         SECTION 03: TYPOGRAPHY (Faithful to Reference Screenshot 3 + Full Scale)
+         ====================================================================== -->
+    <section class="bento-panel" aria-labelledby="heading-03">
+      <div class="bento-header">
+        <h2 id="heading-03"><span class="sec-num">03.</span>TYPOGRAPHY</h2>
+        <span class="text-xs font-mono text-[#7f878d]">--font-family: 'Montserrat'</span>
+      </div>
+
+      <!-- Top Specimen Header matching Screenshot 3 -->
+      <div class="mb-10">
+        <div class="text-4xl sm:text-5xl font-semibold text-white tracking-tight mb-3">Montserrat</div>
+        <div class="flex flex-wrap items-center gap-2 text-base sm:text-lg font-medium text-white">
+          <button type="button" data-weight="300" class="weight-toggle hover:text-[var(--color-primary)] transition font-light">Light</button>
+          <span class="text-[#7f878d]">/</span>
+          <button type="button" data-weight="400" class="weight-toggle hover:text-[var(--color-primary)] transition font-normal">Regular</button>
+          <span class="text-[#7f878d]">/</span>
+          <button type="button" data-weight="500" class="weight-toggle hover:text-[var(--color-primary)] transition font-medium">Medium</button>
+          <span class="text-[#7f878d]">/</span>
+          <button type="button" data-weight="600" class="weight-toggle text-[var(--color-primary)] transition font-semibold">Semibold</button>
+          <span class="text-[#7f878d]">/</span>
+          <button type="button" data-weight="700" class="weight-toggle hover:text-[var(--color-primary)] transition font-bold">Bold</button>
+        </div>
+      </div>
+
+      <!-- Two-Column Specimen Layout from Screenshot 3 -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        <!-- Oversized 'Aa' Glyph -->
+        <div class="lg:col-span-4 flex flex-col justify-between">
+          <div id="specimen-aa" class="text-[7rem] sm:text-[9.5rem] leading-none tracking-tight text-white select-none transition-all" style="font-weight: var(--font-weight-semibold);">
+            Aa
+          </div>
+          <div class="mt-6 space-y-2 text-xs font-mono text-[#7f878d]">
+            <div>--line-height-tight: <span class="text-white">1.2</span></div>
+            <div>--line-height-normal: <span class="text-white">1.5</span></div>
+            <div>--line-height-relaxed: <span class="text-white">1.75</span></div>
+            <div class="pt-2 text-[11px]">Click weights above to preview on <code class="text-white">Aa</code></div>
+          </div>
+        </div>
+
+        <!-- Stacked Type Hierarchy -->
+        <div class="lg:col-span-8 space-y-7">
+          <!-- H1 / Hero -->
+          <div class="pb-7 border-b border-[#2e2e3a]">
+            <div class="text-sm sm:text-base font-medium text-[#7f878d] mb-2">
+              H1 / SemiBold / 61px <span class="font-mono text-xs ml-2 opacity-75">(--font-size-hero: 3.8125rem)</span>
+            </div>
+            <div class="text-3xl sm:text-5xl lg:text-[3.8125rem] font-semibold text-white leading-[1.18] tracking-tight">
+              Driving growth, resilience and competitive advantage through technology
+            </div>
+          </div>
+
+          <!-- H2 / Title -->
+          <div class="pb-7 border-b border-[#2e2e3a]">
+            <div class="text-sm sm:text-base font-medium text-[#7f878d] mb-2">
+              H2 / SemiBold / 32px <span class="font-mono text-xs ml-2 opacity-75">(--font-size-title: 2rem)</span>
+            </div>
+            <div class="text-2xl sm:text-[2rem] font-semibold text-white leading-[1.25]">
+              Simplifying cloud operations: BBD launches new solutions
+            </div>
+          </div>
+
+          <!-- H3 / Subtitle -->
+          <div class="pb-7 border-b border-[#2e2e3a]">
+            <div class="text-sm sm:text-base font-medium text-[#7f878d] mb-2">
+              H3 / SemiBold / 20px <span class="font-mono text-xs ml-2 opacity-75">(--font-size-subtitle: 1.25rem)</span>
+            </div>
+            <div class="text-lg sm:text-[1.25rem] font-semibold text-white leading-[1.35]">
+              Talent Acquisition Lead
+            </div>
+          </div>
+
+          <!-- Body / Regular / 16px -->
+          <div class="pb-7 border-b border-[#2e2e3a]">
+            <div class="text-sm sm:text-base font-medium text-[#7f878d] mb-2">
+              Body / Regular / 16px <span class="font-mono text-xs ml-2 opacity-75">(--font-size-body: 1rem)</span>
+            </div>
+            <p class="text-base text-[#7f878d] max-w-xl leading-relaxed">
+              Smart, adaptable solutions built to solve today's challenges and seize tomorrow's opportunities.
+            </p>
+          </div>
+
+          <!-- Small & Mono -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <div class="text-xs font-medium text-[#7f878d] mb-1">
+                Small / SemiBold / 12px <span class="font-mono opacity-75">(--font-size-small: 0.75rem)</span>
+              </div>
+              <div class="text-xs font-semibold uppercase tracking-wider text-white">
+                INDUSTRY INSIGHTS | SOFTWARE DEVELOPMENT
+              </div>
+            </div>
+            <div>
+              <div class="text-xs font-medium text-[#7f878d] mb-1">
+                Monospace <span class="font-mono opacity-75">(--font-mono: 'JetBrains Mono')</span>
+              </div>
+              <div class="text-xs font-mono text-[var(--color-primary)]">
+                --color-primary: hsl(var(--primary-hue) 70% 50%);
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================================================================
+         ROW: 04. BUTTONS  |  05. FORM ELEMENTS  |  06. ICONS & UI ELEMENTS
+         (Matching Screenshot 4 side-by-side 3-panel layout + all spec modifiers)
+         ====================================================================== -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+
+      <!-- 04. BUTTONS (5 Columns) -->
+      <section class="bento-panel lg:col-span-5 flex flex-col justify-between" aria-labelledby="heading-04">
+        <div>
+          <div class="bento-header">
+            <h2 id="heading-04"><span class="sec-num">04.</span>BUTTONS</h2>
+          </div>
+
+          <!-- 3x3 Matrix from Screenshot 4 -->
+          <div class="grid grid-cols-3 gap-x-3 gap-y-5 items-center justify-items-center py-2">
+            <!-- Row 1: Solid White, Solid Dark, Outline -->
+            <button type="button" class="button button-white w-full">BUTTON</button>
+            <button type="button" class="button button-dark w-full">BUTTON</button>
+            <button type="button" class="button button-outline w-full">BUTTON</button>
+
+            <!-- Row 2: With Arrow -->
+            <button type="button" class="button button-white w-full">
+              <span>BUTTON</span>
+              <svg class="icon icon-small" aria-hidden="true" focusable="false"><use href="#icon-arrow-right"></use></svg>
+            </button>
+            <button type="button" class="button button-dark w-full">
+              <span>BUTTON</span>
+              <svg class="icon icon-small" aria-hidden="true" focusable="false"><use href="#icon-arrow-right"></use></svg>
+            </button>
+            <button type="button" class="button button-outline w-full">
+              <span>BUTTON</span>
+            </button>
+
+            <!-- Row 3: Link Buttons (Plain, Dynamic Primary Underline, White Underline) -->
+            <button type="button" class="button button-link">
+              <span>BUTTON</span>
+              <svg class="icon icon-small" aria-hidden="true" focusable="false"><use href="#icon-arrow-right"></use></svg>
+            </button>
+            <button type="button" class="button button-link link-accent-underline">
+              <span>BUTTON</span>
+              <svg class="icon icon-small" aria-hidden="true" focusable="false"><use href="#icon-arrow-right"></use></svg>
+            </button>
+            <button type="button" class="button button-link link-white-underline">
+              <span>BUTTON</span>
+              <svg class="icon icon-small" aria-hidden="true" focusable="false"><use href="#icon-arrow-right"></use></svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Spec Modifiers: .button-primary, .button-small, disabled, icon + label -->
+        <div class="mt-8 pt-5 border-t border-[#2e2e3a] space-y-3">
+          <div class="text-[11px] font-mono uppercase tracking-wider text-[#7f878d]">
+            Dynamic Primary (<code class="text-white">.button-primary</code>) &amp; Spec Modifiers
+          </div>
+          <div class="flex flex-wrap items-center gap-2.5">
+            <button type="button" class="button button-primary">
+              <svg class="icon icon-small" aria-hidden="true" focusable="false"><use href="#icon-plus"></use></svg>
+              <span>Add Item</span>
+            </button>
+            <a href="#heading-04" class="button button-primary">Sign Up</a>
+            <button type="button" class="button button-primary button-small">Small</button>
+            <button type="button" class="button button-primary" disabled>Disabled</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- 05. FORM ELEMENTS (3.5 Columns -> 3 Cols on 12-grid) -->
+      <section class="bento-panel lg:col-span-3 flex flex-col justify-between" aria-labelledby="heading-05">
+        <div>
+          <div class="bento-header">
+            <h2 id="heading-05"><span class="sec-num">05.</span>FORM ELEMENTS</h2>
+          </div>
+
+          <form class="space-y-5" onsubmit="event.preventDefault();">
+            <!-- Radio Fieldset matching Screenshot 4 -->
+            <fieldset class="space-y-3 border-0 p-0 m-0">
+              <legend class="sr-only">Choose an option</legend>
+              <label class="flex items-center gap-3 cursor-pointer text-sm text-[#d7d8d9]">
+                <input class="form-radio" type="radio" name="demo-group" value="a" checked>
+                <span>Option</span>
+              </label>
+              <label class="flex items-center gap-3 cursor-pointer text-sm text-[#d7d8d9]">
+                <input class="form-radio" type="radio" name="demo-group" value="b">
+                <span>Option</span>
+              </label>
+            </fieldset>
+
+            <!-- Light Input & Light Select from Screenshot 4 -->
+            <div class="space-y-3 pt-2">
+              <div>
+                <label for="input-service-text" class="sr-only">Service Name</label>
+                <input id="input-service-text" type="text" class="form-input form-input-light" placeholder="Service">
+              </div>
+
+              <div class="relative">
+                <label for="input-service-select" class="sr-only">Select Service</label>
+                <select id="input-service-select" class="form-input form-input-light appearance-none pr-10 cursor-pointer">
+                  <option value="">Service</option>
+                  <option value="cloud">Cloud Operations</option>
+                  <option value="software">Software Development</option>
+                  <option value="security">Security Architecture</option>
+                </select>
+                <svg class="icon icon-medium text-[#151719] pointer-events-none absolute right-3.5 top-1/2 -translate-y-1/2" aria-hidden="true">
+                  <use href="#icon-chevron-down"></use>
+                </svg>
+              </div>
+            </div>
+
+            <!-- Dark Input & Textarea from Spec -->
+            <div class="space-y-3 pt-3 border-t border-[#2e2e3a]">
+              <div>
+                <label for="spec-email" class="block text-xs font-mono text-[#7f878d] mb-1">.form-input-dark (Focus for glow)</label>
+                <input id="spec-email" type="email" class="form-input form-input-dark !py-2.5 text-sm" placeholder="you@example.com">
+              </div>
+              <div>
+                <label for="spec-message" class="sr-only">Message</label>
+                <textarea id="spec-message" rows="2" class="form-input form-input-dark !py-2 text-sm" placeholder="Textarea (.form-input-dark)"></textarea>
+              </div>
+            </div>
+          </form>
+        </div>
+      </section>
+
+      <!-- 06. ICONS & UI ELEMENTS (4 Columns) -->
+      <section class="bento-panel lg:col-span-4 flex flex-col justify-between" aria-labelledby="heading-06">
+        <div class="space-y-6">
+          <div class="bento-header">
+            <h2 id="heading-06"><span class="sec-num">06.</span>ICONS &amp; UI ELEMENTS</h2>
+          </div>
+
+          <!-- Top Icon Row matching Screenshot 4 -->
+          <div class="flex items-center justify-between px-1">
+            <svg class="icon icon-large hover:text-[var(--color-primary)] cursor-pointer" role="img" aria-label="Search"><title>Search</title><use href="#icon-search"></use></svg>
+            <svg class="icon icon-large hover:text-[var(--color-primary)] cursor-pointer" aria-hidden="true" focusable="false"><use href="#icon-arrow-right"></use></svg>
+            <svg class="icon icon-large hover:text-[var(--color-primary)] cursor-pointer" aria-hidden="true" focusable="false"><use href="#icon-plus"></use></svg>
+            <svg class="icon icon-large hover:text-[var(--color-primary)] cursor-pointer" aria-hidden="true" focusable="false"><use href="#icon-chevron-down"></use></svg>
+            <svg class="icon icon-large hover:text-[var(--color-primary)] cursor-pointer" role="img" aria-label="Menu"><title>Menu</title><use href="#icon-menu"></use></svg>
+            <button class="icon-button" type="button" aria-label="Settings">
+              <svg class="icon icon-medium" aria-hidden="true" focusable="false"><use href="#icon-settings"></use></svg>
+            </button>
+            <button class="icon-button" type="button" aria-label="Close">
+              <svg class="icon icon-medium" aria-hidden="true" focusable="false"><use href="#icon-x"></use></svg>
+            </button>
+          </div>
+
+          <!-- Dual Indicator Rules from Screenshot 4 -->
+          <div class="grid grid-cols-2 gap-5 pt-1">
+            <hr class="divider-accent">
+            <hr class="border-0 h-[2px] bg-[#3d3d4d] m-0">
+          </div>
+
+          <!-- White Callout Card (101 | AWS Certified Cloud Practitioner) with .divider-vertical -->
+          <div class="card card-light !rounded-xl !p-4 flex-row items-center gap-4">
+            <span class="text-2xl font-bold text-[#0f1011] tracking-tight pl-1">101</span>
+            <span class="divider-vertical" role="separator" aria-orientation="vertical"></span>
+            <span class="text-xs font-medium text-[#555b61]">AWS Certified Cloud Practitioner</span>
+          </div>
+
+          <!-- Board-Style Pagination (Screenshot 4) -->
+          <div class="pt-1">
+            <div class="pagination-minimal" role="group" aria-label="Board pagination preview">
+              <button type="button" class="page-minimal-btn is-active" data-page="1">01</button>
+              <button type="button" class="page-minimal-btn" data-page="2">02</button>
+              <button type="button" class="page-minimal-btn" data-page="3">03</button>
+              <button type="button" class="page-minimal-btn" data-page="4">04</button>
+              <button type="button" class="page-minimal-btn" data-page="5">05</button>
+              <button type="button" class="page-minimal-next ml-2" aria-label="Next page">
+                <svg class="icon icon-medium" aria-hidden="true"><use href="#icon-arrow-right"></use></svg>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Semantic Spec Pagination (<nav aria-label="Pagination"><ol class="pagination">) -->
+        <div class="mt-6 pt-4 border-t border-[#2e2e3a] flex items-center justify-between gap-2">
+          <span class="text-[11px] font-mono text-[#7f878d]">.pagination-item-active</span>
+          <nav aria-label="Pagination">
+            <ol class="pagination" id="spec-pagination-list">
+              <li class="pagination-item"><a href="#heading-06" data-spec-page="prev" aria-label="Previous page">←</a></li>
+              <li class="pagination-item pagination-item-active" aria-current="page"><a href="#heading-06" data-spec-page="1">1</a></li>
+              <li class="pagination-item"><a href="#heading-06" data-spec-page="2">2</a></li>
+              <li class="pagination-item"><a href="#heading-06" data-spec-page="3">3</a></li>
+              <li class="pagination-item"><a href="#heading-06" data-spec-page="next" aria-label="Next page">→</a></li>
+            </ol>
+          </nav>
+        </div>
+      </section>
+
+    </div>
+
+    <!-- ======================================================================
+         ROW: 08. TAGS & BADGES  |  09. DIVIDERS
+         (Matching Screenshot 2 side-by-side panels + full spec modifiers)
+         ====================================================================== -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+      <!-- 08. TAGS & BADGES -->
+      <section class="bento-panel flex flex-col justify-between" aria-labelledby="heading-08">
+        <div>
+          <div class="bento-header">
+            <h2 id="heading-08"><span class="sec-num">08.</span>TAGS &amp; BADGES</h2>
+            <span class="text-xs font-mono text-[#7f878d]">&lt;span class="badge ..."&gt;</span>
+          </div>
+
+          <!-- Primary Row from Screenshot 2 -->
+          <div class="flex flex-wrap items-center gap-3.5 py-2">
+            <span class="badge badge-neutral">JOBURG</span>
+            <span class="badge badge-neutral">FULL-TIME</span>
+            <span class="badge badge-accent">FEATURED</span>
+          </div>
+        </div>
+
+        <!-- Full Spec Badge Modifiers -->
+        <div class="mt-8 pt-5 border-t border-[#2e2e3a]">
+          <div class="text-[11px] font-mono uppercase tracking-wider text-[#7f878d] mb-3">All Specification Modifiers</div>
+          <div class="flex flex-wrap items-center gap-2.5">
+            <span class="badge badge-neutral">.badge-neutral</span>
+            <span class="badge badge-accent">.badge-accent</span>
+            <span class="badge badge-active">.badge-active</span>
+            <span class="badge badge-inactive">.badge-inactive</span>
+            <span class="tag">.tag</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- 09. DIVIDERS -->
+      <section class="bento-panel flex flex-col justify-between" aria-labelledby="heading-09">
+        <div>
+          <div class="bento-header">
+            <h2 id="heading-09"><span class="sec-num">09.</span>DIVIDERS</h2>
+            <span class="text-xs font-mono text-[#7f878d]">.divider-accent / solid / dashed</span>
+          </div>
+
+          <!-- 3 Horizontal Rules from Screenshot 2 -->
+          <div class="space-y-7 py-3">
+            <div>
+              <hr class="divider-accent">
+            </div>
+            <div>
+              <hr class="divider-solid">
+            </div>
+            <div>
+              <hr class="divider-dashed">
+            </div>
+          </div>
+        </div>
+
+        <!-- Vertical Divider Demonstration -->
+        <div class="mt-6 pt-4 border-t border-[#2e2e3a] flex items-center justify-between text-xs font-mono text-[#7f878d]">
+          <span>Flex parent with <code class="text-white">.divider-vertical</code>:</span>
+          <div class="flex items-center gap-3 h-6 text-white">
+            <span>OCT 15</span>
+            <span class="divider-vertical" role="separator" aria-orientation="vertical"></span>
+            <span class="text-[var(--color-primary)]">330°</span>
+            <span class="divider-vertical" role="separator" aria-orientation="vertical"></span>
+            <span>DEC 15</span>
+          </div>
+        </div>
+      </section>
+
+    </div>
+
+    <!-- ======================================================================
+         SECTION 10: CARDS (6-Topology Interactive Matrix + Screenshot 1 Grid)
+         ====================================================================== -->
+    <section class="bento-panel" aria-labelledby="heading-10">
+      <div class="bento-header flex-wrap">
+        <div>
+          <h2 id="heading-10"><span class="sec-num">10.</span>CARDS — 6 FLAT FLEXBOX TOPOLOGIES &amp; REFERENCE BENTO</h2>
+          <p class="text-xs font-normal normal-case text-[#7f878d] mt-1">
+            Zero <code class="font-mono text-[#d7d8d9]">&gt;</code> combinators, zero <code class="font-mono text-[#d7d8d9]">:only-child</code> selectors, zero <code class="font-mono text-[#d7d8d9]">order</code> hacks, and zero <code class="font-mono text-[#d7d8d9]">@media</code> queries—powered strictly by native Flexbox directions (<code class="font-mono text-white">.card-reverse</code>, <code class="font-mono text-white">.card-horizontal</code>, <code class="font-mono text-white">.card-horizontal-reverse</code>, <code class="font-mono text-white">.card-media-aside</code>).
+          </p>
+        </div>
+
+        <!-- Live Interactive Controls for the 6 Card Topologies -->
+        <div class="flex flex-wrap items-center gap-3">
+          <!-- Surface Theme Switcher -->
+          <div class="inline-flex items-center bg-[#151719] border border-[#2e2e3a] rounded-full p-1 text-xs font-mono" role="group" aria-label="Topology card surface">
+            <button type="button" data-card-surface="card-dark" class="topo-surface-btn px-3 py-1 rounded-full bg-[var(--color-primary)] text-[var(--color-primary-contrast)] font-semibold transition">
+              .card-dark
+            </button>
+            <button type="button" data-card-surface="card-dark-accent" class="topo-surface-btn px-3 py-1 rounded-full text-[#d7d8d9] hover:text-white transition">
+              .card-dark-accent
+            </button>
+            <button type="button" data-card-surface="card-light" class="topo-surface-btn px-3 py-1 rounded-full text-[#d7d8d9] hover:text-white transition">
+              .card-light
+            </button>
+          </div>
+
+          <!-- Flat .card-pad + .media-rounded-small Toggle -->
+          <label class="inline-flex items-center gap-2 text-xs font-mono text-[#d7d8d9] bg-[#151719] border border-[#2e2e3a] rounded-full px-3.5 py-1.5 cursor-pointer select-none" title="Applies flat .card-pad to .card and .media-rounded-small to .card-media">
+            <input id="toggle-card-pad" type="checkbox" class="accent-[var(--color-primary)] rounded cursor-pointer">
+            <span>.card-pad + .media-rounded-small</span>
+          </label>
+
+          <!-- Inspector Toggle -->
+          <label class="inline-flex items-center gap-2 text-xs font-mono text-[#d7d8d9] bg-[#151719] border border-[#2e2e3a] rounded-full px-3.5 py-1.5 cursor-pointer select-none">
+            <input id="toggle-card-inspector" type="checkbox" checked class="accent-[var(--color-primary)] rounded cursor-pointer">
+            <span>Show Flat CSS Reference</span>
+          </label>
+
+          <!-- Sync Artwork Hue Toggle -->
+          <label class="inline-flex items-center gap-2 text-xs font-mono text-[#d7d8d9] bg-[#151719] border border-[#2e2e3a] rounded-full px-3.5 py-1.5 cursor-pointer select-none">
+            <input id="toggle-artwork-tint" type="checkbox" class="accent-[var(--color-primary)] rounded cursor-pointer">
+            <span>Sync 3D Artwork Hue</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Flat Selector Architecture Reference Drawer -->
+      <div id="card-selector-inspector" class="mb-8 p-4 rounded-2xl bg-[#090a0c] border border-[#2e2e3a] font-mono text-xs">
+        <div class="flex flex-wrap items-center justify-between gap-2 pb-3 mb-3 border-b border-[#1e2227]">
+          <span class="text-[var(--color-primary)] font-semibold uppercase">Pure Flat Single-Class Card Selectors (styles/utilities.css)</span>
+          <span class="text-[#7f878d]">Keep &lt;figure class="card-media"&gt; first in HTML — flip visually with native Flexbox -reverse</span>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 text-[11px]">
+          <div class="p-2.5 rounded-lg bg-[#151719] border border-[#2e2e3a]">
+            <div class="text-white font-semibold">.card</div>
+            <div class="text-[#7f878d] mt-0.5">display: flex; flex-direction: column;</div>
+          </div>
+          <div class="p-2.5 rounded-lg bg-[#151719] border border-[#2e2e3a]">
+            <div class="text-[var(--color-primary)] font-semibold">.card-reverse</div>
+            <div class="text-[#7f878d] mt-0.5">flex-direction: column-reverse;</div>
+          </div>
+          <div class="p-2.5 rounded-lg bg-[#151719] border border-[#2e2e3a]">
+            <div class="text-white font-semibold">.card-horizontal</div>
+            <div class="text-[#7f878d] mt-0.5">flex-direction: row;</div>
+          </div>
+          <div class="p-2.5 rounded-lg bg-[#151719] border border-[#2e2e3a]">
+            <div class="text-[var(--color-primary)] font-semibold">.card-horizontal-reverse</div>
+            <div class="text-[#7f878d] mt-0.5">flex-direction: row-reverse;</div>
+          </div>
+          <div class="p-2.5 rounded-lg bg-[#151719] border border-[#2e2e3a]">
+            <div class="text-white font-semibold">.card-content</div>
+            <div class="text-[#7f878d] mt-0.5">flex: 1; padding: var(--space-6);</div>
+          </div>
+          <div class="p-2.5 rounded-lg bg-[#151719] border border-[#2e2e3a]">
+            <div class="text-white font-semibold">.card-media</div>
+            <div class="text-[#7f878d] mt-0.5">flex-shrink: 0; flex-grow: 1;</div>
+          </div>
+          <div class="p-2.5 rounded-lg bg-[#151719] border border-[#2e2e3a]">
+            <div class="text-[var(--color-primary)] font-semibold">.card-media-aside</div>
+            <div class="text-[#7f878d] mt-0.5">flex: 0 0 42%; (horizontal split)</div>
+          </div>
+          <div class="p-2.5 rounded-lg bg-[#151719] border border-[#2e2e3a]">
+            <div class="text-white font-semibold">.card-pad</div>
+            <div class="text-[#7f878d] mt-0.5">padding: var(--space-4); gap: var(--space-4);</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ====================================================================
+           PART A: THE 6 CARD TOPOLOGY VARIATIONS MATRIX
+           ==================================================================== -->
+      <div class="mb-12">
+        <div class="flex items-center justify-between mb-4">
+          <span class="text-xs font-mono uppercase tracking-wider text-[var(--color-primary)]">
+            10A. Interactive 6-Topology Matrix (Click any class badge to copy flat markup)
+          </span>
+          <span class="text-xs font-mono text-[#7f878d]">100% Flat Utility Classes</span>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 items-stretch">
+
+          <!-- VARIATION 1: Vertical + Media First -->
+          <div class="flex flex-col gap-2">
+            <div class="flex items-center justify-between text-[11px] font-mono text-[#7f878d] px-1">
+              <span><strong class="text-white">01.</strong> Vertical — Media First</span>
+              <button type="button" data-copy='<article class="card card-dark"><figure class="card-media">...</figure><section class="card-content">...</section></article>' class="text-[var(--color-primary)] hover:underline">.card</button>
+            </div>
+            <article class="topo-card card card-dark flex-1 justify-between">
+              <figure class="topo-media card-media h-44 bg-black">
+                <svg class="media-cover dynamic-artwork" viewBox="0 0 400 260" preserveAspectRatio="xMidYMid slice" role="img" aria-label="3D ribbon media first">
+                  <rect width="400" height="260" fill="#020204"/>
+                  <rect width="400" height="260" fill="url(#bg-glow-1)"/>
+                  <path d="M 70 85 C 150 10, 320 15, 410 55 L 410 175 C 310 130, 170 120, 95 160 Z" fill="url(#ribbon-deep-1)"/>
+                  <path d="M 85 110 C 145 145, 290 190, 410 225 L 410 265 L 155 265 C 110 215, 72 155, 85 110 Z" fill="url(#ribbon-violet-1)" opacity="0.92"/>
+                  <path d="M 72 95 C 95 42, 235 28, 410 38 C 275 55, 145 78, 128 135 C 115 182, 185 235, 235 265 L 155 265 C 102 220, 52 142, 72 95 Z" fill="url(#ribbon-gold-1)"/>
+                </svg>
+              </figure>
+              <section class="card-content justify-between">
+                <div class="space-y-2">
+                  <div class="text-[10px] font-semibold uppercase tracking-wider opacity-75">TOPOLOGY 01 · .card</div>
+                  <h3 class="text-lg font-semibold leading-snug">Cloud Native Architecture</h3>
+                  <p class="text-xs opacity-75 leading-relaxed">
+                    Default <code class="font-mono">flex-direction: column</code> with <code class="font-mono">&lt;figure class="card-media"&gt;</code> first and <code class="font-mono">&lt;section class="card-content"&gt;</code> second.
+                  </p>
+                </div>
+                <div class="pt-1">
+                  <a href="#heading-10" class="topo-action-btn button button-white button-small">
+                    <span>EXPLORE</span>
+                    <svg class="icon icon-small" aria-hidden="true"><use href="#icon-arrow-right"></use></svg>
+                  </a>
+                </div>
+              </section>
+            </article>
+          </div>
+
+          <!-- VARIATION 2: Vertical + Media Last (.card-reverse) -->
+          <div class="flex flex-col gap-2">
+            <div class="flex items-center justify-between text-[11px] font-mono text-[#7f878d] px-1">
+              <span><strong class="text-white">02.</strong> Vertical — Media Last</span>
+              <button type="button" data-copy='<article class="card card-dark card-reverse"><figure class="card-media">...</figure><section class="card-content">...</section></article>' class="text-[var(--color-primary)] hover:underline">.card.card-reverse</button>
+            </div>
+            <article class="topo-card card card-dark card-reverse flex-1 justify-between">
+              <figure class="topo-media card-media h-44 bg-black">
+                <svg class="media-cover dynamic-artwork" viewBox="0 0 400 260" preserveAspectRatio="xMidYMid slice" role="img" aria-label="3D ribbon media last">
+                  <rect width="400" height="260" fill="#020204"/>
+                  <rect width="400" height="260" fill="url(#bg-glow-1)"/>
+                  <path d="M 70 85 C 150 10, 320 15, 410 55 L 410 175 C 310 130, 170 120, 95 160 Z" fill="url(#ribbon-deep-1)"/>
+                  <path d="M 85 110 C 145 145, 290 190, 410 225 L 410 265 L 155 265 C 110 215, 72 155, 85 110 Z" fill="url(#ribbon-violet-1)" opacity="0.92"/>
+                  <path d="M 72 95 C 95 42, 235 28, 410 38 C 275 55, 145 78, 128 135 C 115 182, 185 235, 235 265 L 155 265 C 102 220, 52 142, 72 95 Z" fill="url(#ribbon-gold-1)"/>
+                </svg>
+              </figure>
+              <section class="card-content justify-between">
+                <div class="space-y-2">
+                  <div class="text-[10px] font-semibold uppercase tracking-wider opacity-75">TOPOLOGY 02 · .card-reverse</div>
+                  <h3 class="text-lg font-semibold leading-snug">Simplifying Cloud Operations</h3>
+                  <p class="text-xs opacity-75 leading-relaxed">
+                    Uses native <code class="font-mono">flex-direction: column-reverse</code> so identical DOM markup places content at the top and media at the bottom.
+                  </p>
+                </div>
+                <div class="pt-1">
+                  <a href="#heading-10" class="topo-action-btn button button-white button-small">
+                    <span>READ CASE STUDY</span>
+                    <svg class="icon icon-small" aria-hidden="true"><use href="#icon-arrow-right"></use></svg>
+                  </a>
+                </div>
+              </section>
+            </article>
+          </div>
+
+          <!-- VARIATION 5: Media-Only Card -->
+          <div class="flex flex-col gap-2">
+            <div class="flex items-center justify-between text-[11px] font-mono text-[#7f878d] px-1">
+              <span><strong class="text-white">05.</strong> Media-Only Card</span>
+              <button type="button" data-copy='<article class="card card-dark"><figure class="card-media aspect-16-9"><img class="media-cover" src="..." alt="..."></figure></article>' class="text-[var(--color-primary)] hover:underline">.card &gt; .card-media</button>
+            </div>
+            <article class="topo-card card card-dark flex-1">
+              <figure class="topo-media card-media aspect-16-9">
+                <svg class="media-cover dynamic-artwork" viewBox="0 0 400 320" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Full bleed media only card">
+                  <rect width="400" height="320" fill="#05060a"/>
+                  <rect width="400" height="320" fill="url(#bg-glow-1)"/>
+                  <path d="M -20 220 C 80 60, 240 10, 420 75 L 420 265 C 290 190, 140 185, -20 290 Z" fill="url(#proj-grad-cool)"/>
+                  <path d="M 35 260 C 90 110, 220 45, 420 55 C 280 95, 165 160, 145 235 C 130 285, 200 310, 250 325 L 95 325 C 50 295, 20 285, 35 260 Z" fill="url(#proj-grad-warm)"/>
+                </svg>
+                <figcaption class="absolute inset-x-0 bottom-0 p-5 bg-gradient-to-t from-black/90 via-black/50 to-transparent flex items-end justify-between text-white">
+                  <div>
+                    <span class="badge badge-active !py-1 !px-2.5 !text-[10px] mb-1.5">MEDIA-ONLY (.card-media)</span>
+                    <div class="text-sm font-semibold">flex-grow: 1 fills card naturally without :only-child</div>
+                  </div>
+                </figcaption>
+              </figure>
+            </article>
+          </div>
+
+          <!-- VARIATION 3: Horizontal + Media First (.card-horizontal) -->
+          <div class="flex flex-col gap-2 md:col-span-2 lg:col-span-1">
+            <div class="flex items-center justify-between text-[11px] font-mono text-[#7f878d] px-1">
+              <span><strong class="text-white">03.</strong> Horizontal — Media First</span>
+              <button type="button" data-copy='<article class="card card-dark card-horizontal"><figure class="card-media card-media-aside">...</figure><section class="card-content">...</section></article>' class="text-[var(--color-primary)] hover:underline">.card-horizontal</button>
+            </div>
+            <article class="topo-card card card-dark card-horizontal flex-1">
+              <figure class="topo-media card-media card-media-aside bg-black">
+                <svg class="media-cover dynamic-artwork" viewBox="0 0 320 220" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Horizontal media left">
+                  <rect width="320" height="220" fill="#070810"/>
+                  <path d="M 15 165 C 30 55, 125 -10, 265 10 C 175 45, 120 115, 70 175 C 40 205, 18 190, 15 165 Z" fill="url(#proj-grad-warm)"/>
+                  <path d="M 55 180 C 115 130, 215 70, 320 55 L 320 145 C 245 165, 185 215, 115 220 Z" fill="url(#proj-grad-cool)"/>
+                </svg>
+              </figure>
+              <section class="card-content justify-center">
+                <div class="text-[10px] font-bold uppercase tracking-wider opacity-75">TOPOLOGY 03 · .card-horizontal</div>
+                <h3 class="text-base font-semibold leading-snug">Project Approach</h3>
+                <p class="text-xs opacity-75 leading-relaxed">
+                  Uses <code class="font-mono">flex-direction: row</code> on the card and flat <code class="font-mono">.card-media-aside</code> (<code class="font-mono">flex: 0 0 42%</code>) on the figure.
+                </p>
+              </section>
+            </article>
+          </div>
+
+          <!-- VARIATION 4: Horizontal + Media Last (.card-horizontal-reverse) -->
+          <div class="flex flex-col gap-2 md:col-span-2 lg:col-span-1">
+            <div class="flex items-center justify-between text-[11px] font-mono text-[#7f878d] px-1">
+              <span><strong class="text-white">04.</strong> Horizontal — Media Last</span>
+              <button type="button" data-copy='<article class="card card-dark card-horizontal-reverse"><figure class="card-media card-media-aside">...</figure><section class="card-content">...</section></article>' class="text-[var(--color-primary)] hover:underline">.card-horizontal-reverse</button>
+            </div>
+            <article class="topo-card card card-dark card-horizontal-reverse flex-1">
+              <figure class="topo-media card-media card-media-aside bg-black">
+                <svg class="media-cover dynamic-artwork" viewBox="0 0 320 220" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Horizontal media right">
+                  <rect width="320" height="220" fill="#070810"/>
+                  <path d="M 15 165 C 30 55, 125 -10, 265 10 C 175 45, 120 115, 70 175 C 40 205, 18 190, 15 165 Z" fill="url(#proj-grad-warm)"/>
+                  <path d="M 55 180 C 115 130, 215 70, 320 55 L 320 145 C 245 165, 185 215, 115 220 Z" fill="url(#proj-grad-cool)"/>
+                </svg>
+              </figure>
+              <section class="card-content justify-center">
+                <div class="text-[10px] font-bold uppercase tracking-wider opacity-75">TOPOLOGY 04 · .card-horizontal-reverse</div>
+                <h3 class="text-base font-semibold leading-snug">Reversed Split Layout</h3>
+                <p class="text-xs opacity-75 leading-relaxed">
+                  Uses native <code class="font-mono">flex-direction: row-reverse</code> so <code class="font-mono">.card-content</code> leads on the left and media sits on the right.
+                </p>
+              </section>
+            </article>
+          </div>
+
+          <!-- VARIATION 6: Text-Only Card -->
+          <div class="flex flex-col gap-2 md:col-span-2 lg:col-span-1">
+            <div class="flex items-center justify-between text-[11px] font-mono text-[#7f878d] px-1">
+              <span><strong class="text-white">06.</strong> Text-Only Card</span>
+              <button type="button" data-copy='<article class="card card-dark-accent"><section class="card-content">...</section></article>' class="text-[var(--color-primary)] hover:underline">.card &gt; .card-content</button>
+            </div>
+            <article class="topo-card card card-dark flex-1">
+              <section class="card-content justify-between">
+                <div class="space-y-2">
+                  <div class="flex items-center justify-between">
+                    <span class="text-[10px] font-semibold uppercase tracking-wider opacity-75">TOPOLOGY 06 · TEXT-ONLY</span>
+                    <span class="badge badge-accent !py-0.5 !px-2 !text-[10px]">flex: 1</span>
+                  </div>
+                  <h3 class="text-lg font-semibold leading-snug">Software Development</h3>
+                  <p class="text-xs opacity-75 leading-relaxed">
+                    Because <code class="font-mono">.card-content</code> has <code class="font-mono">flex: 1</code>, omitting <code class="font-mono">.card-media</code> lets the text section fill the card with zero extra rules.
+                  </p>
+                </div>
+                <div class="pt-1">
+                  <a href="#heading-10" class="topo-action-btn button button-white button-small">
+                    <span>LEARN MORE</span>
+                    <svg class="icon icon-small" aria-hidden="true"><use href="#icon-arrow-right"></use></svg>
+                  </a>
+                </div>
+              </section>
+            </article>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- ====================================================================
+           PART B: ORIGINAL REFERENCE BENTO GRID (SCREENSHOT 1 COMPOSITION)
+           ==================================================================== -->
+      <div class="pt-8 border-t border-[#2e2e3a]">
+        <div class="flex items-center justify-between mb-5">
+          <span class="text-xs font-mono uppercase tracking-wider text-[#7f878d]">
+            10B. Reference Board Composition (Screenshot 1 — Built with .card, .card-horizontal, .card-pad &amp; .media-rounded-small)
+          </span>
+        </div>
+
+      <!-- 12-Column Grid matching Screenshot 1 -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+
+        <!-- Card 1: Tall Light Card (.card.card-light) -->
+        <article class="card card-light lg:col-span-3 justify-between">
+          <section class="card-content !p-7 space-y-5">
+            <div class="text-[11px] font-semibold uppercase tracking-wider text-[#151719]">
+              INDUSTRY INSIGHTS &nbsp;|&nbsp; SOFTWARE DEVELOPMENT
+            </div>
+            <h3 class="text-[1.45rem] font-semibold leading-[1.3] text-[#0f1011]">
+              Simplifying cloud operations: BBD launches new BBD Cloud Solutions offering
+            </h3>
+            <div class="pt-2">
+              <a href="#heading-10" class="button button-black">
+                <span>READ THE CASE STUDY</span>
+                <svg class="icon icon-small" aria-hidden="true" focusable="false"><use href="#icon-arrow-right"></use></svg>
+              </a>
+            </div>
+          </section>
+          <figure class="card-media h-56 bg-black">
+            <!-- Rich Procedural SVG Iridescent 3D Ribbon matching Screenshot 1 -->
+            <svg class="media-cover dynamic-artwork" viewBox="0 0 400 260" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Abstract 3D iridescent ribbon wave">
+              <defs>
+                <radialGradient id="bg-glow-1" cx="65%" cy="55%" r="65%">
+                  <stop offset="0%" stop-color="#3a1c71" stop-opacity="0.55"/>
+                  <stop offset="55%" stop-color="#110926" stop-opacity="0.3"/>
+                  <stop offset="100%" stop-color="#000000" stop-opacity="1"/>
+                </radialGradient>
+                <linearGradient id="ribbon-violet-1" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#140b2e"/>
+                  <stop offset="35%" stop-color="#5b34b0"/>
+                  <stop offset="70%" stop-color="#c471ed"/>
+                  <stop offset="100%" stop-color="#f7d4ff"/>
+                </linearGradient>
+                <linearGradient id="ribbon-gold-1" x1="0%" y1="100%" x2="90%" y2="0%">
+                  <stop offset="0%" stop-color="#ffffff"/>
+                  <stop offset="25%" stop-color="#ffe29f"/>
+                  <stop offset="55%" stop-color="#b967ff"/>
+                  <stop offset="100%" stop-color="#190e36"/>
+                </linearGradient>
+                <linearGradient id="ribbon-deep-1" x1="0%" y1="30%" x2="100%" y2="70%">
+                  <stop offset="0%" stop-color="#090614"/>
+                  <stop offset="50%" stop-color="#301b70"/>
+                  <stop offset="85%" stop-color="#7b42f6"/>
+                  <stop offset="100%" stop-color="#140a2e"/>
+                </linearGradient>
+              </defs>
+              <rect width="400" height="260" fill="#020204"/>
+              <rect width="400" height="260" fill="url(#bg-glow-1)"/>
+              <!-- Back Sweeping 3D Wave -->
+              <path d="M 70 85 C 150 10, 320 15, 410 55 L 410 175 C 310 130, 170 120, 95 160 Z" fill="url(#ribbon-deep-1)"/>
+              <!-- Lower Fold -->
+              <path d="M 85 110 C 145 145, 290 190, 410 225 L 410 265 L 155 265 C 110 215, 72 155, 85 110 Z" fill="url(#ribbon-violet-1)" opacity="0.92"/>
+              <!-- Specular Rim Fold -->
+              <path d="M 72 95 C 95 42, 235 28, 410 38 C 275 55, 145 78, 128 135 C 115 182, 185 235, 235 265 L 155 265 C 102 220, 52 142, 72 95 Z" fill="url(#ribbon-gold-1)"/>
+              <!-- Inner Dark Crease -->
+              <path d="M 105 115 C 135 88, 255 92, 410 148 L 410 215 C 275 168, 142 158, 105 115 Z" fill="#07040f" opacity="0.88"/>
+              <!-- Bright Highlight Edge -->
+              <path d="M 74 96 C 105 46, 250 32, 405 40" fill="none" stroke="#ffffff" stroke-width="2.5" opacity="0.85"/>
+              <path d="M 80 105 C 105 165, 155 225, 210 265" fill="none" stroke="#f6d8ff" stroke-width="2" opacity="0.75"/>
+            </svg>
+          </figure>
+        </article>
+
+        <!-- Card 2: Tall Dark Card (.card.card-dark) -->
+        <article class="card card-dark lg:col-span-3 justify-between">
+          <section class="card-content !p-7 space-y-5">
+            <div class="text-[11px] font-semibold uppercase tracking-wider text-[#d7d8d9]">
+              INDUSTRY INSIGHTS &nbsp;|&nbsp; SOFTWARE DEVELOPMENT
+            </div>
+            <h3 class="text-[1.45rem] font-semibold leading-[1.3] text-white">
+              Simplifying cloud operations: BBD launches new BBD Cloud Solutions offering
+            </h3>
+            <div class="pt-2">
+              <a href="#heading-10" class="button button-white">
+                <span>READ THE CASE STUDY</span>
+                <svg class="icon icon-small" aria-hidden="true" focusable="false"><use href="#icon-arrow-right"></use></svg>
+              </a>
+            </div>
+          </section>
+          <figure class="card-media h-56 bg-black">
+            <svg class="media-cover dynamic-artwork" viewBox="0 0 400 260" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Abstract 3D iridescent ribbon wave">
+              <rect width="400" height="260" fill="#020204"/>
+              <rect width="400" height="260" fill="url(#bg-glow-1)"/>
+              <path d="M 70 85 C 150 10, 320 15, 410 55 L 410 175 C 310 130, 170 120, 95 160 Z" fill="url(#ribbon-deep-1)"/>
+              <path d="M 85 110 C 145 145, 290 190, 410 225 L 410 265 L 155 265 C 110 215, 72 155, 85 110 Z" fill="url(#ribbon-violet-1)" opacity="0.92"/>
+              <path d="M 72 95 C 95 42, 235 28, 410 38 C 275 55, 145 78, 128 135 C 115 182, 185 235, 235 265 L 155 265 C 102 220, 52 142, 72 95 Z" fill="url(#ribbon-gold-1)"/>
+              <path d="M 105 115 C 135 88, 255 92, 410 148 L 410 215 C 275 168, 142 158, 105 115 Z" fill="#07040f" opacity="0.88"/>
+              <path d="M 74 96 C 105 46, 250 32, 405 40" fill="none" stroke="#ffffff" stroke-width="2.5" opacity="0.85"/>
+              <path d="M 80 105 C 105 165, 155 225, 210 265" fill="none" stroke="#f6d8ff" stroke-width="2" opacity="0.75"/>
+            </svg>
+          </figure>
+        </article>
+
+        <!-- Right 6 Columns Stack -->
+        <div class="lg:col-span-6 flex flex-col justify-between gap-6">
+
+          <!-- Card 3: Horizontal Light Card (PROJECT APPROACH) using flat .card-horizontal.card-pad + .media-rounded-small -->
+          <article class="card card-light card-horizontal card-pad items-center">
+            <figure class="card-media card-media-aside media-rounded-small h-44 bg-black">
+              <!-- Vibrant Red/Orange/Blue/Magenta 3D Ribbon Wave from Screenshot 1 -->
+              <svg class="media-cover dynamic-artwork" viewBox="0 0 320 220" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Vibrant crimson and cobalt 3D wave">
+                <defs>
+                  <linearGradient id="proj-grad-warm" x1="0%" y1="100%" x2="100%" y2="0%">
+                    <stop offset="0%" stop-color="#ffffff"/>
+                    <stop offset="22%" stop-color="#ff512f"/>
+                    <stop offset="60%" stop-color="#dd2476"/>
+                    <stop offset="100%" stop-color="#1a0933"/>
+                  </linearGradient>
+                  <linearGradient id="proj-grad-cool" x1="0%" y1="0%" x2="100%" y2="100%">
+                    <stop offset="0%" stop-color="#00d2ff"/>
+                    <stop offset="35%" stop-color="#3a7bd5"/>
+                    <stop offset="70%" stop-color="#ff0844"/>
+                    <stop offset="100%" stop-color="#090514"/>
+                  </linearGradient>
+                </defs>
+                <rect width="320" height="220" fill="#070810"/>
+                <!-- Upper Warm Sweep -->
+                <path d="M 15 165 C 30 55, 125 -10, 265 10 C 175 45, 120 115, 70 175 C 40 205, 18 190, 15 165 Z" fill="url(#proj-grad-warm)"/>
+                <!-- Lower Neon Blue/Magenta Twist -->
+                <path d="M 55 180 C 115 130, 215 70, 320 55 L 320 145 C 245 165, 185 215, 115 220 Z" fill="url(#proj-grad-cool)"/>
+                <!-- Specular Neon Edge -->
+                <path d="M 35 182 C 115 135, 210 75, 320 58" fill="none" stroke="#ff7eb3" stroke-width="3"/>
+              </svg>
+            </figure>
+            <section class="card-content !p-2 space-y-2">
+              <div class="text-xs font-bold uppercase tracking-wider text-[#0f1011]">
+                PROJECT APPROACH
+              </div>
+              <p class="text-base text-[#555b61] leading-relaxed">
+                Our approach to delivering tomorrow's solutions, today
+              </p>
+            </section>
+          </article>
+
+          <!-- Card 4: Horizontal Dark Card (Software development) -->
+          <article class="card card-dark sm:flex-row items-start sm:items-center justify-between !p-6 gap-6">
+            <div class="sm:w-1/3">
+              <h3 class="text-lg font-semibold text-white">Software development</h3>
+            </div>
+            <div class="sm:w-2/3 space-y-4">
+              <p class="text-xs text-[#7f878d] leading-relaxed">
+                Transform your digital portfolio with expert engineering capabilities that ensure you drive continuous technological excellence and outpace your competitors.
+              </p>
+              <a href="#heading-10" class="button button-outline button-small">
+                <span>LEARN MORE</span>
+                <svg class="icon icon-small" aria-hidden="true" focusable="false"><use href="#icon-arrow-right"></use></svg>
+              </a>
+            </div>
+          </article>
+
+          <!-- Bottom Sub-Row: Card 5 (.card-dark-accent) & Card 6 (.card-light Role Card) -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 flex-1">
+
+            <!-- Card 5: Dynamic Accent Top Border (.card.card-dark-accent) -->
+            <article class="card card-dark-accent justify-between">
+              <section class="card-content !p-6 space-y-3">
+                <h3 class="text-lg font-semibold text-white">Software development</h3>
+                <p class="text-xs text-[#7f878d] leading-relaxed">
+                  Transform your digital portfolio with expert engineering capabilities that ensure you drive continuous technological excellence and outpace your competitors.
+                </p>
+                <div class="pt-3">
+                  <a href="#heading-10" class="button button-outline button-small">
+                    <span>LEARN MORE</span>
+                    <svg class="icon icon-small" aria-hidden="true" focusable="false"><use href="#icon-arrow-right"></use></svg>
+                  </a>
+                </div>
+              </section>
+            </article>
+
+            <!-- Card 6: Light Role Card (.card.card-light) -->
+            <article class="card card-light justify-between">
+              <section class="card-content !p-6 space-y-3">
+                <div class="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] font-medium text-[#555b61]">
+                  <span>Johannesburg</span>
+                  <span>Permanent</span>
+                  <span>Talent acquisition</span>
+                </div>
+                <h3 class="text-lg font-bold text-[#0f1011]">Talent Acquisition Lead</h3>
+                <p class="text-xs text-[#555b61] leading-relaxed">
+                  Transform your digital portfolio with expert engineering capabilities that ensure you outpace your competitors.
+                </p>
+                <div class="pt-3">
+                  <a href="#heading-10" class="button button-black button-small">
+                    <span>VIEW ROLE DETAILS</span>
+                    <svg class="icon icon-small" aria-hidden="true" focusable="false"><use href="#icon-arrow-right"></use></svg>
+                  </a>
+                </div>
+              </section>
+            </article>
+
+          </div>
+
+        </div>
+
+      </div>
+      </div>
+    </section>
+
+    <!-- ======================================================================
+         SECTION 07: SPACING, BORDER RADIUS, SHADOWS & MEDIA ASPECT RATIOS
+         ====================================================================== -->
+    <section class="bento-panel" aria-labelledby="heading-07">
+      <div class="bento-header">
+        <h2 id="heading-07"><span class="sec-num">07.</span>SPACING, RADIUS, SHADOWS &amp; MEDIA ASPECT RATIOS</h2>
+        <span class="text-xs font-mono text-[#7f878d]">DESIGN TOKENS &amp; MEDIA UTILITIES</span>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        <!-- Spacing Scale (4 cols) -->
+        <div class="lg:col-span-4 space-y-3">
+          <h3 class="text-xs font-mono uppercase tracking-wider text-[#7f878d] mb-3">Spacing Scale (<code class="text-white">--space-1</code> → <code class="text-white">--space-12</code>)</h3>
+          <div class="space-y-2.5 font-mono text-xs">
+            <div class="flex items-center gap-3">
+              <span class="w-24 text-[#7f878d]">--space-1</span>
+              <span class="w-16 text-white">0.25rem</span>
+              <div class="h-3 rounded-sm" style="width: var(--space-1); background: var(--color-primary);"></div>
+              <span class="text-[10px] text-[#7f878d]">4px</span>
+            </div>
+            <div class="flex items-center gap-3">
+              <span class="w-24 text-[#7f878d]">--space-2</span>
+              <span class="w-16 text-white">0.5rem</span>
+              <div class="h-3 rounded-sm" style="width: var(--space-2); background: var(--color-primary);"></div>
+              <span class="text-[10px] text-[#7f878d]">8px</span>
+            </div>
+            <div class="flex items-center gap-3">
+              <span class="w-24 text-[#7f878d]">--space-3</span>
+              <span class="w-16 text-white">0.75rem</span>
+              <div class="h-3 rounded-sm" style="width: var(--space-3); background: var(--color-primary);"></div>
+              <span class="text-[10px] text-[#7f878d]">12px</span>
+            </div>
+            <div class="flex items-center gap-3">
+              <span class="w-24 text-[#7f878d]">--space-4</span>
+              <span class="w-16 text-white">1rem</span>
+              <div class="h-3 rounded-sm" style="width: var(--space-4); background: var(--color-primary);"></div>
+              <span class="text-[10px] text-[#7f878d]">16px</span>
+            </div>
+            <div class="flex items-center gap-3">
+              <span class="w-24 text-[#7f878d]">--space-6</span>
+              <span class="w-16 text-white">1.5rem</span>
+              <div class="h-3 rounded-sm" style="width: var(--space-6); background: var(--color-primary);"></div>
+              <span class="text-[10px] text-[#7f878d]">24px</span>
+            </div>
+            <div class="flex items-center gap-3">
+              <span class="w-24 text-[#7f878d]">--space-8</span>
+              <span class="w-16 text-white">2rem</span>
+              <div class="h-3 rounded-sm" style="width: var(--space-8); background: var(--color-primary);"></div>
+              <span class="text-[10px] text-[#7f878d]">32px</span>
+            </div>
+            <div class="flex items-center gap-3">
+              <span class="w-24 text-[#7f878d]">--space-12</span>
+              <span class="w-16 text-white">3rem</span>
+              <div class="h-3 rounded-sm" style="width: var(--space-12); background: var(--color-primary);"></div>
+              <span class="text-[10px] text-[#7f878d]">48px</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Border Radius & Shadows (4 cols) -->
+        <div class="lg:col-span-4 space-y-5">
+          <div>
+            <h3 class="text-xs font-mono uppercase tracking-wider text-[#7f878d] mb-3">Border Radius Tokens</h3>
+            <div class="grid grid-cols-3 gap-2.5 font-mono text-[11px]">
+              <div class="p-3 bg-[#151719] border border-[var(--color-primary)] text-center" style="border-radius: var(--radius-none);">
+                <div class="text-white">none</div>
+                <div class="text-[#7f878d]">0</div>
+              </div>
+              <div class="p-3 bg-[#151719] border border-[var(--color-primary)] text-center" style="border-radius: var(--radius-small);">
+                <div class="text-white">small</div>
+                <div class="text-[#7f878d]">4px</div>
+              </div>
+              <div class="p-3 bg-[#151719] border border-[var(--color-primary)] text-center" style="border-radius: var(--radius-medium);">
+                <div class="text-white">medium</div>
+                <div class="text-[#7f878d]">8px</div>
+              </div>
+              <div class="p-3 bg-[#151719] border border-[var(--color-primary)] text-center" style="border-radius: var(--radius-card);">
+                <div class="text-white">card</div>
+                <div class="text-[#7f878d]">16px</div>
+              </div>
+              <div class="col-span-2 p-3 bg-[#151719] border border-[var(--color-primary)] text-center" style="border-radius: var(--radius-pill);">
+                <div class="text-white">--radius-pill (9999px)</div>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <h3 class="text-xs font-mono uppercase tracking-wider text-[#7f878d] mb-3">Shadows &amp; Dynamic Glow</h3>
+            <div class="grid grid-cols-2 gap-3 font-mono text-xs">
+              <div class="p-3.5 rounded-xl bg-[#1e2227] border border-[#2e2e3a]" style="box-shadow: var(--shadow-card);">
+                <div class="text-white font-semibold">--shadow-card</div>
+                <div class="text-[10px] text-[#7f878d] mt-1">0 4px 20px rgba(0,0,0,.35)</div>
+              </div>
+              <div class="p-3.5 rounded-xl bg-[#151719] border border-[var(--color-primary)]" style="box-shadow: var(--shadow-primary);">
+                <div class="text-white font-semibold">--shadow-primary</div>
+                <div class="text-[10px] text-[#7f878d] mt-1">35% primary glow</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Media Aspect Ratio Utilities (4 cols) -->
+        <div class="lg:col-span-4">
+          <h3 class="text-xs font-mono uppercase tracking-wider text-[#7f878d] mb-3">Media Aspect Ratios &amp; <code class="text-white">&lt;figcaption&gt;</code></h3>
+          <div class="grid grid-cols-3 gap-3 items-start">
+            <figure class="space-y-1.5">
+              <div class="aspect-16-9 media-rounded-small border border-[var(--color-primary)] bg-gradient-to-br from-[var(--color-primary-muted)] to-[#1b1846] flex items-center justify-center font-mono text-xs text-white">
+                16:9
+              </div>
+              <figcaption class="text-[10px] font-mono text-[#7f878d]">.aspect-16-9<br>.media-rounded-small</figcaption>
+            </figure>
+
+            <figure class="space-y-1.5">
+              <div class="aspect-1-1 media-rounded-large border border-[var(--color-primary)] bg-gradient-to-br from-[var(--color-primary-muted)] to-[#1b1846] flex items-center justify-center font-mono text-xs text-white">
+                1:1
+              </div>
+              <figcaption class="text-[10px] font-mono text-[#7f878d]">.aspect-1-1<br>.media-rounded-large</figcaption>
+            </figure>
+
+            <figure class="space-y-1.5">
+              <div class="aspect-3-4 media-rounded-none border border-[var(--color-primary)] bg-gradient-to-br from-[var(--color-primary-muted)] to-[#1b1846] flex items-center justify-center font-mono text-xs text-white">
+                3:4
+              </div>
+              <figcaption class="text-[10px] font-mono text-[#7f878d]">.aspect-3-4<br>.media-rounded-none</figcaption>
+            </figure>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================================================================
+         SECTION 11: SEMANTIC ELEMENT GUIDE & PORTABLE CSS CODE EXPORT
+         ====================================================================== -->
+    <section class="bento-panel" aria-labelledby="heading-11">
+      <div class="bento-header">
+        <h2 id="heading-11"><span class="sec-num">11.</span>SEMANTIC ELEMENT GUIDE &amp; PORTABLE CSS FILES</h2>
+        <span class="text-xs font-mono text-[#7f878d]">READY TO EXPORT</span>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        <!-- Left 5 Cols: Semantic Element Guide Table -->
+        <div class="lg:col-span-5">
+          <h3 class="text-xs font-mono uppercase tracking-wider text-[#7f878d] mb-3">Semantic HTML Element Guide</h3>
+          <div class="bg-[#090a0c] border border-[#2e2e3a] rounded-2xl overflow-hidden">
+            <table class="w-full text-left border-collapse text-xs">
+              <thead>
+                <tr class="border-b border-[#2e2e3a] bg-[#151719] font-mono text-[11px] uppercase text-[#7f878d]">
+                  <th class="py-2.5 px-3.5">Use Case</th>
+                  <th class="py-2.5 px-3.5">Semantic Element</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-[#1e2227]">
+                <tr>
+                  <td class="py-2 px-3.5 text-[#d7d8d9]">Standalone content card</td>
+                  <td class="py-2 px-3.5 font-mono text-[var(--color-primary)]">&lt;article&gt;</td>
+                </tr>
+                <tr>
+                  <td class="py-2 px-3.5 text-[#d7d8d9]">Grouped thematic content</td>
+                  <td class="py-2 px-3.5 font-mono text-[var(--color-primary)]">&lt;section&gt;</td>
+                </tr>
+                <tr>
+                  <td class="py-2 px-3.5 text-[#d7d8d9]">Image + optional caption</td>
+                  <td class="py-2 px-3.5 font-mono text-[var(--color-primary)]">&lt;figure&gt; + &lt;figcaption&gt;</td>
+                </tr>
+                <tr>
+                  <td class="py-2 px-3.5 text-[#d7d8d9]">Primary / Pagination nav</td>
+                  <td class="py-2 px-3.5 font-mono text-[var(--color-primary)]">&lt;nav aria-label="..."&gt;</td>
+                </tr>
+                <tr>
+                  <td class="py-2 px-3.5 text-[#d7d8d9]">Radio / checkbox group</td>
+                  <td class="py-2 px-3.5 font-mono text-[var(--color-primary)]">&lt;fieldset&gt; + &lt;legend&gt;</td>
+                </tr>
+                <tr>
+                  <td class="py-2 px-3.5 text-[#d7d8d9]">Action (no navigation)</td>
+                  <td class="py-2 px-3.5 font-mono text-[var(--color-primary)]">&lt;button type="button"&gt;</td>
+                </tr>
+                <tr>
+                  <td class="py-2 px-3.5 text-[#d7d8d9]">Decorative icon</td>
+                  <td class="py-2 px-3.5 font-mono text-[var(--color-primary)]">&lt;svg aria-hidden="true"&gt;</td>
+                </tr>
+                <tr>
+                  <td class="py-2 px-3.5 text-[#d7d8d9]">Meaningful icon</td>
+                  <td class="py-2 px-3.5 font-mono text-[var(--color-primary)]">&lt;svg role="img"&gt;&lt;title&gt;</td>
+                </tr>
+                <tr>
+                  <td class="py-2 px-3.5 text-[#d7d8d9]">Status label / pill</td>
+                  <td class="py-2 px-3.5 font-mono text-[var(--color-primary)]">&lt;span class="badge ..."&gt;</td>
+                </tr>
+                <tr>
+                  <td class="py-2 px-3.5 text-[#d7d8d9]">Vertical separator</td>
+                  <td class="py-2 px-3.5 font-mono text-[var(--color-primary)]">&lt;span role="separator"&gt;</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Right 7 Cols: Interactive Tabbed CSS Source Code Viewer -->
+        <div class="lg:col-span-7 flex flex-col">
+          <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+            <div class="flex flex-wrap items-center gap-1.5" role="tablist" aria-label="Design System CSS Files">
+              <button type="button" data-code-tab="variables.css" class="code-tab-btn px-3 py-1.5 rounded-lg font-mono text-xs bg-[var(--color-primary)] text-[var(--color-primary-contrast)] font-semibold transition">
+                variables.css
+              </button>
+              <button type="button" data-code-tab="tokens.css" class="code-tab-btn px-3 py-1.5 rounded-lg font-mono text-xs bg-[#151719] text-[#d7d8d9] border border-[#2e2e3a] hover:border-[var(--color-primary)] transition">
+                tokens.css
+              </button>
+              <button type="button" data-code-tab="base.css" class="code-tab-btn px-3 py-1.5 rounded-lg font-mono text-xs bg-[#151719] text-[#d7d8d9] border border-[#2e2e3a] hover:border-[var(--color-primary)] transition">
+                base.css
+              </button>
+              <button type="button" data-code-tab="utilities.css" class="code-tab-btn px-3 py-1.5 rounded-lg font-mono text-xs bg-[#151719] text-[#d7d8d9] border border-[#2e2e3a] hover:border-[var(--color-primary)] transition">
+                utilities.css
+              </button>
+            </div>
+
+            <button id="btn-copy-code" type="button" class="button button-dark button-small">
+              <svg class="icon icon-small" aria-hidden="true"><use href="#icon-copy"></use></svg>
+              <span id="copy-code-label">Copy File</span>
+            </button>
+          </div>
+
+          <div class="relative flex-1 bg-[#090a0c] border border-[#2e2e3a] rounded-2xl p-4 overflow-hidden">
+            <pre id="code-viewer-pre" class="font-mono text-xs text-[#d7d8d9] overflow-x-auto max-h-[340px] leading-relaxed"></pre>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Toast Notification for Clipboard Copies -->
+  <div id="copy-toast" class="fixed bottom-6 right-6 z-50 pointer-events-none opacity-0 translate-y-2 transition-all duration-200">
+    <div class="px-4 py-2.5 rounded-full font-mono text-xs font-semibold shadow-2xl flex items-center gap-2 border border-white/20" style="background: var(--color-primary); color: var(--color-primary-contrast);">
+      <span>Copied:</span>
+      <code id="copy-toast-text">var(--color-primary)</code>
+    </div>
+  </div>
+
+  <!-- ========================================================================
+       JAVASCRIPT ENGINE: Mathematical Sync, SVG Plotter, Ribbon & UI Controls
+       ======================================================================== -->
+  <script>
+    (function () {
+      'use strict';
+
+      // --- State ---
+      const state = {
+        dayOfYear: 349, // Starts at Anchor 2 (Dec 15, 360° Red) matching screenshots; one-click preset to 288
+        yearLength: 365,
+        anchor1Day: 288,
+        anchor1Hue: 330,
+        anchor2Day: 349,
+        anchor2Hue: 360,
+        isPlaying: false,
+        activeCodeTab: 'variables.css',
+        syncArtwork: false
+      };
+
+      let animFrameId = null;
+
+      // --- Mathematical Model Implementation ---
+      // H(d) = mod(360(d - 1)/N + B - A * sin(2π(d - C)/N), 360)
+      function computeModelParams(N, d1, h1, d2, h2) {
+        const C = (d1 + d2) / 2;
+        const baseHue1 = (360 * (d1 - 1)) / N;
+        const baseHue2 = (360 * (d2 - 1)) / N;
+
+        const sin1 = Math.sin((2 * Math.PI * (d1 - C)) / N);
+        const sin2 = Math.sin((2 * Math.PI * (d2 - C)) / N);
+
+        const denom = (sin2 - sin1);
+        const A = Math.abs(denom) > 1e-9
+          ? ((baseHue2 - baseHue1) - (h2 - h1)) / denom
+          : 0;
+
+        const B = h1 - baseHue1 + A * sin1;
+
+        return { C, baseHue1, baseHue2, sin1, sin2, A, B };
+      }
+
+      function computeHueForDay(d, N, params) {
+        const linear = (360 * (d - 1)) / N;
+        const wave = params.A * Math.sin((2 * Math.PI * (d - params.C)) / N);
+        const raw = linear + params.B - wave;
+        // Positive mathematical modulo 360
+        const modHue = ((raw % 360) + 360) % 360;
+        // If raw is very close to 360 (like Anchor 2 = 360°), preserve 360 for display clarity
+        return { modHue, linear };
+      }
+
+      // Convert HSL(h, 70%, 50%) to RGB & Hex, and compute WCAG relative luminance contrast
+      function hslToRgb(h, s = 0.7, l = 0.5) {
+        const c = (1 - Math.abs(2 * l - 1)) * s;
+        const hp = (h % 360) / 60;
+        const x = c * (1 - Math.abs((hp % 2) - 1));
+        let r1 = 0, g1 = 0, b1 = 0;
+        if (0 <= hp && hp < 1) { r1 = c; g1 = x; b1 = 0; }
+        else if (1 <= hp && hp < 2) { r1 = x; g1 = c; b1 = 0; }
+        else if (2 <= hp && hp < 3) { r1 = 0; g1 = c; b1 = x; }
+        else if (3 <= hp && hp < 4) { r1 = 0; g1 = x; b1 = c; }
+        else if (4 <= hp && hp < 5) { r1 = x; g1 = 0; b1 = c; }
+        else if (5 <= hp && hp <= 6) { r1 = c; g1 = 0; b1 = x; }
+        const m = l - c / 2;
+        const r = Math.round((r1 + m) * 255);
+        const g = Math.round((g1 + m) * 255);
+        const b = Math.round((b1 + m) * 255);
+        return { r, g, b };
+      }
+
+      function rgbToHex({ r, g, b }) {
+        return '#' + [r, g, b].map(v => v.toString(16).padStart(2, '0')).join('');
+      }
+
+      function relativeLuminance({ r, g, b }) {
+        const srgb = [r, g, b].map(v => {
+          const c = v / 255;
+          return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
+        });
+        return 0.2126 * srgb[0] + 0.7152 * srgb[1] + 0.0722 * srgb[2];
+      }
+
+      function contrastRatio(lum1, lum2) {
+        const brightest = Math.max(lum1, lum2);
+        const darkest = Math.min(lum1, lum2);
+        return (brightest + 0.05) / (darkest + 0.05);
+      }
+
+      // Day of Year <-> Calendar Date Helpers
+      function dayOfYearToDate(day, isLeap) {
+        const year = isLeap ? 2024 : 2026;
+        const date = new Date(Date.UTC(year, 0, 1));
+        date.setUTCDate(Math.round(day));
+        return date;
+      }
+
+      function formatShortDate(date) {
+        return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' });
+      }
+
+      function formatIsoDate(date) {
+        return date.toISOString().split('T')[0];
+      }
+
+      // --- DOM Elements ---
+      const root = document.documentElement;
+      const elSlider = document.getElementById('input-day-slider');
+      const elDatePicker = document.getElementById('input-date-picker');
+      const elLeapToggle = document.getElementById('input-leap-toggle');
+      const elScrubberDay = document.getElementById('scrubber-day-num');
+      const elHeaderHueBadge = document.getElementById('header-hue-badge');
+      const elHeaderDateLabel = document.getElementById('header-date-label');
+      const elHeaderHexLabel = document.getElementById('header-hex-label');
+
+      const elA1Day = document.getElementById('input-a1-day');
+      const elA1Hue = document.getElementById('input-a1-hue');
+      const elA2Day = document.getElementById('input-a2-day');
+      const elA2Hue = document.getElementById('input-a2-hue');
+
+      // Math Readouts
+      const elMathC = document.getElementById('math-c');
+      const elMathA = document.getElementById('math-a');
+      const elMathB = document.getElementById('math-b');
+      const elMathBase = document.getElementById('math-base');
+      const elMathHd = document.getElementById('math-hd');
+      const elMathHsl = document.getElementById('math-hsl');
+
+      // Swatch & Contrast Readouts
+      const elSwatchPrimaryHex = document.getElementById('swatch-primary-hex');
+      const elContrastSelected = document.getElementById('contrast-selected-token');
+      const elContrastWhite = document.getElementById('contrast-ratio-white');
+      const elContrastBlack = document.getElementById('contrast-ratio-black');
+
+      // SVG Graph Elements
+      const svgCurve = document.getElementById('hue-curve-svg');
+      const svgLinearPath = document.getElementById('svg-linear-path');
+      const svgWarpedPath = document.getElementById('svg-warped-path');
+      const svgWarpCenterLine = document.getElementById('svg-warp-center-line');
+      const svgWarpCenterLabel = document.getElementById('svg-warp-center-label');
+      const svgAnchor1 = document.getElementById('svg-anchor-1');
+      const svgAnchor1Label = document.getElementById('svg-anchor-1-label');
+      const svgAnchor2 = document.getElementById('svg-anchor-2');
+      const svgAnchor2Label = document.getElementById('svg-anchor-2-label');
+      const svgPlayheadX = document.getElementById('svg-playhead-x');
+      const svgPlayheadY = document.getElementById('svg-playhead-y');
+      const svgPlayheadDot = document.getElementById('svg-playhead-dot');
+
+      // Spectrum Ribbon
+      const ribbonContainer = document.getElementById('spectrum-ribbon-container');
+      const ribbonCanvas = document.getElementById('spectrum-ribbon-canvas');
+      const ribbonPlayhead = document.getElementById('ribbon-playhead');
+      const ribbonMarkerA1 = document.getElementById('ribbon-marker-a1');
+      const ribbonMarkerA2 = document.getElementById('ribbon-marker-a2');
+      const ribbonReadout = document.getElementById('ribbon-readout');
+      const ribbonMaxDays = document.getElementById('ribbon-max-days');
+
+      // --- Coordinate Mappers for SVG Graph (x: 50..610, y: 300..20) ---
+      function dayToSvgX(d, N) {
+        return 50 + ((d - 1) / (N - 1)) * 560;
+      }
+      function hueToSvgY(h) {
+        return 300 - (h / 360) * 280;
+      }
+
+      // --- Render Full-Year Spectrum Ribbon Canvas ---
+      function drawSpectrumRibbon(params) {
+        if (!ribbonCanvas) return;
+        const width = 730;
+        const height = 28;
+        ribbonCanvas.width = width;
+        ribbonCanvas.height = height;
+        const ctx = ribbonCanvas.getContext('2d');
+        for (let x = 0; x < width; x++) {
+          const d = 1 + (x / (width - 1)) * (state.yearLength - 1);
+          const { modHue } = computeHueForDay(d, state.yearLength, params);
+          ctx.fillStyle = `hsl(${modHue.toFixed(1)}, 70%, 50%)`;
+          ctx.fillRect(x, 0, 1, height);
+        }
+      }
+
+      // --- Render SVG Curve Plot ---
+      function renderSvgCurve(params, currentHue) {
+        const N = state.yearLength;
+        let linearD = '';
+        let warpedD = '';
+        let prevHue = null;
+
+        for (let d = 1; d <= N; d++) {
+          const x = dayToSvgX(d, N);
+          const { modHue, linear } = computeHueForDay(d, N, params);
+          const yLin = hueToSvgY(linear % 360);
+          const yWarp = hueToSvgY(modHue);
+
+          linearD += (d === 1 ? `M ${x.toFixed(1)} ${yLin.toFixed(1)}` : ` L ${x.toFixed(1)} ${yLin.toFixed(1)}`);
+
+          // Avoid vertical jump line when modulo wraps 360 -> 0
+          if (prevHue !== null && Math.abs(modHue - prevHue) > 180) {
+            warpedD += ` M ${x.toFixed(1)} ${yWarp.toFixed(1)}`;
+          } else {
+            warpedD += (d === 1 ? `M ${x.toFixed(1)} ${yWarp.toFixed(1)}` : ` L ${x.toFixed(1)} ${yWarp.toFixed(1)}`);
+          }
+          prevHue = modHue;
+        }
+
+        svgLinearPath.setAttribute('d', linearD);
+        svgWarpedPath.setAttribute('d', warpedD);
+
+        // Warp Centre C
+        const cx = dayToSvgX(params.C, N);
+        svgWarpCenterLine.setAttribute('x1', cx);
+        svgWarpCenterLine.setAttribute('x2', cx);
+        svgWarpCenterLabel.setAttribute('x', cx);
+        svgWarpCenterLabel.textContent = `C=${params.C.toFixed(1)}`;
+
+        // Anchor 1 & 2 markers
+        const a1x = dayToSvgX(state.anchor1Day, N);
+        const a1y = hueToSvgY(state.anchor1Hue);
+        svgAnchor1.setAttribute('cx', a1x);
+        svgAnchor1.setAttribute('cy', a1y);
+        svgAnchor1.setAttribute('fill', `hsl(${state.anchor1Hue} 70% 50%)`);
+        svgAnchor1Label.setAttribute('x', Math.max(110, a1x - 8));
+        svgAnchor1Label.setAttribute('y', Math.max(28, a1y - 8));
+        svgAnchor1Label.textContent = `A1 (${state.anchor1Day}, ${state.anchor1Hue}°)`;
+
+        const a2x = dayToSvgX(state.anchor2Day, N);
+        const a2y = hueToSvgY(state.anchor2Hue);
+        svgAnchor2.setAttribute('cx', a2x);
+        svgAnchor2.setAttribute('cy', a2y);
+        svgAnchor2.setAttribute('fill', `hsl(${state.anchor2Hue} 70% 50%)`);
+        svgAnchor2Label.setAttribute('x', Math.min(605, a2x - 8));
+        svgAnchor2Label.setAttribute('y', Math.min(290, a2y + 18));
+        svgAnchor2Label.textContent = `A2 (${state.anchor2Day}, ${state.anchor2Hue}°)`;
+
+        // Current Playhead
+        const px = dayToSvgX(state.dayOfYear, N);
+        const py = hueToSvgY(currentHue);
+        svgPlayheadX.setAttribute('x1', px);
+        svgPlayheadX.setAttribute('x2', px);
+        svgPlayheadY.setAttribute('y1', py);
+        svgPlayheadY.setAttribute('y2', py);
+        svgPlayheadDot.setAttribute('cx', px);
+        svgPlayheadDot.setAttribute('cy', py);
+      }
+
+      // --- Code Export Generator ---
+      const cssFileTemplates = {
+        'tokens.css': () => `/* styles/tokens.css — Entry point (only import this file in your project) */
+@import './variables.css';
+@import './base.css';
+@import './utilities.css';`,
+
+        'variables.css': (params, hue) => `:root {
+  /* Configuration */
+  --year-length: ${state.yearLength};
+  --day-of-year: ${state.dayOfYear};
+
+  /* Anchor 1: October 15 */
+  --anchor-day-1: ${state.anchor1Day};
+  --anchor-hue-1: ${state.anchor1Hue}deg;
+
+  /* Anchor 2: December 15 */
+  --anchor-day-2: ${state.anchor2Day};
+  --anchor-hue-2: ${state.anchor2Hue}deg;
+
+  /* Derived warp centre (Current: ${params.C.toFixed(1)}) */
+  --warp-center: calc((var(--anchor-day-1) + var(--anchor-day-2)) / 2);
+
+  /* Unwarped hue at each anchor */
+  --base-hue-1: calc(360deg * (var(--anchor-day-1) - 1) / var(--year-length));
+  --base-hue-2: calc(360deg * (var(--anchor-day-2) - 1) / var(--year-length));
+
+  /* Sinusoidal values at each anchor */
+  --sin-1: sin(calc(1turn * (var(--anchor-day-1) - var(--warp-center)) / var(--year-length)));
+  --sin-2: sin(calc(1turn * (var(--anchor-day-2) - var(--warp-center)) / var(--year-length)));
+
+  /* Amplitude (${params.A.toFixed(2)}deg) & Offset (${params.B.toFixed(2)}deg) */
+  --warp-amplitude: calc(
+    (var(--base-hue-2) - var(--base-hue-1) - (var(--anchor-hue-2) - var(--anchor-hue-1)))
+    / (var(--sin-2) - var(--sin-1))
+  );
+  --hue-offset: calc(
+    var(--anchor-hue-1) - var(--base-hue-1) + var(--warp-amplitude) * var(--sin-1)
+  );
+
+  /* Resulting Hue for Day ${state.dayOfYear}: ${hue.toFixed(2)}deg */
+  --primary-hue: mod(
+    calc(
+      360deg * (var(--day-of-year) - 1) / var(--year-length)
+      + var(--hue-offset)
+      - var(--warp-amplitude) * sin(calc(1turn * (var(--day-of-year) - var(--warp-center)) / var(--year-length)))
+    ),
+    360deg
+  );
+
+  --color-primary: hsl(var(--primary-hue) 70% 50%);
+  --color-primary-hover: color-mix(in srgb, var(--color-primary) 88%, black);
+  --color-primary-active: color-mix(in srgb, var(--color-primary) 76%, black);
+  --color-primary-subtle: color-mix(in srgb, var(--color-primary) 12%, transparent);
+  --color-primary-muted: color-mix(in srgb, var(--color-primary) 45%, var(--color-cod-gray));
+  --color-primary-light: color-mix(in srgb, var(--color-primary) 65%, white);
+}`,
+
+        'base.css': () => `/* styles/base.css — Global Resets & Typography Defaults */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+::selection {
+  background: var(--color-primary);
+  color: var(--color-primary-contrast);
+}
+
+body, figure, ul {
+  margin: 0;
+  padding: 0;
+}
+
+ul { list-style: none; }
+
+body {
+  font-family: var(--font-family);
+  font-size: var(--font-size-body);
+  line-height: var(--line-height-normal);
+  color: var(--color-white);
+  background-color: var(--color-cod-gray);
+  -webkit-font-smoothing: antialiased;
+}
+
+img, picture, video, canvas, svg {
+  display: block;
+  max-width: 100%;
+}
+
+input, button, textarea, select {
+  font: inherit;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}`,
+
+        'utilities.css': () => `/* styles/utilities.css — Component Utility Classes */
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-pill);
+  font-size: var(--font-size-small);
+  font-weight: var(--font-weight-semibold);
+  text-transform: uppercase;
+  transition: all var(--transition-default);
+}
+
+.button-primary {
+  background: var(--color-primary);
+  color: var(--color-primary-contrast);
+}
+
+/* --- Cards (Flat Single-Class Flexbox System) --- */
+.card {
+  display: flex;
+  flex-direction: column;
+  border-radius: var(--radius-card);
+  overflow: hidden;
+  box-shadow: var(--shadow-card);
+}
+
+.card-reverse { flex-direction: column-reverse; }
+.card-horizontal { flex-direction: row; }
+.card-horizontal-reverse { flex-direction: row-reverse; }
+.card-pad { padding: var(--space-4); gap: var(--space-4); }
+
+.card-content {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  padding: var(--space-6);
+  gap: var(--space-4);
+}
+
+.card-media {
+  flex-shrink: 0;
+  flex-grow: 1;
+  overflow: hidden;
+}
+
+.card-media-aside {
+  flex: 0 0 42%;
+}
+
+.card-dark { background: var(--surface-card-dark); border: 1px solid var(--color-charade); color: var(--color-white); }
+.card-dark-accent { background: var(--surface-card-dark); border: 1px solid var(--color-charade); border-top: 3px solid var(--color-primary); color: var(--color-white); }
+.card-light { background: var(--surface-card-light); border: 1px solid var(--color-iron); color: var(--color-cod-gray-dark); }
+
+.divider-accent {
+  height: 2px;
+  border: 0;
+  background: var(--color-primary);
+}`
+      };
+
+      function updateCodeViewer(params, hue) {
+        const pre = document.getElementById('code-viewer-pre');
+        if (!pre) return;
+        const generator = cssFileTemplates[state.activeCodeTab];
+        pre.textContent = generator ? generator(params, hue) : '';
+      }
+
+      // --- Master Update Function ---
+      function updateDesignSystem() {
+        const params = computeModelParams(
+          state.yearLength,
+          state.anchor1Day,
+          state.anchor1Hue,
+          state.anchor2Day,
+          state.anchor2Hue
+        );
+
+        const { modHue } = computeHueForDay(state.dayOfYear, state.yearLength, params);
+        // Display 360.0° if at Anchor 2 (360°)
+        const displayHue = (Math.abs(modHue) < 0.05 && Math.abs(state.dayOfYear - state.anchor2Day) < 0.5 && state.anchor2Hue === 360)
+          ? 360
+          : modHue;
+
+        // 1. Update CSS Custom Properties on :root
+        root.style.setProperty('--year-length', state.yearLength);
+        root.style.setProperty('--day-of-year', state.dayOfYear);
+        root.style.setProperty('--anchor-day-1', state.anchor1Day);
+        root.style.setProperty('--anchor-hue-1', `${state.anchor1Hue}deg`);
+        root.style.setProperty('--anchor-day-2', state.anchor2Day);
+        root.style.setProperty('--anchor-hue-2', `${state.anchor2Hue}deg`);
+        // Also explicitly set --primary-hue and --color-primary so browsers without full CSS trig/mod support stay 100% synced
+        root.style.setProperty('--primary-hue', `${displayHue.toFixed(3)}deg`);
+        root.style.setProperty('--color-primary', `hsl(${displayHue.toFixed(2)} 70% 50%)`);
+
+        // 2. Compute RGB, Hex, and WCAG Contrast for --color-primary-contrast fallback
+        const rgb = hslToRgb(displayHue, 0.70, 0.50);
+        const hex = rgbToHex(rgb);
+        const lum = relativeLuminance(rgb);
+        const ratioWhite = contrastRatio(lum, 1.0);
+        const ratioBlack = contrastRatio(lum, 0.0);
+        const bestContrast = ratioBlack > ratioWhite ? '#000000' : '#ffffff';
+        root.style.setProperty('--color-primary-contrast', bestContrast);
+
+        // 3. Update Header & Scrubber Controls
+        const dateObj = dayOfYearToDate(state.dayOfYear, state.yearLength === 366);
+        const shortDate = formatShortDate(dateObj);
+        elSlider.max = state.yearLength;
+        elSlider.value = state.dayOfYear;
+        elScrubberDay.textContent = Number.isInteger(state.dayOfYear) ? state.dayOfYear : state.dayOfYear.toFixed(1);
+        elDatePicker.value = formatIsoDate(dateObj);
+        elHeaderHueBadge.textContent = `${displayHue.toFixed(1)}°`;
+        elHeaderDateLabel.textContent = `${shortDate} (Day ${elScrubberDay.textContent} / ${state.yearLength})`;
+        elHeaderHexLabel.textContent = hex.toUpperCase();
+
+        // 4. Update Section 01 Math Readouts
+        elMathC.textContent = params.C.toFixed(1);
+        elMathA.textContent = `${params.A.toFixed(2)}°`;
+        elMathB.textContent = `${params.B.toFixed(2)}°`;
+        elMathBase.textContent = `${params.baseHue1.toFixed(1)}° / ${params.baseHue2.toFixed(1)}°`;
+        elMathHd.textContent = `${displayHue.toFixed(2)}°`;
+        elMathHsl.textContent = `hsl(${Math.round(displayHue)} 70% 50%)`;
+
+        // 5. Update Section 02 Swatch & Contrast Readouts
+        elSwatchPrimaryHex.textContent = hex.toUpperCase();
+        elContrastSelected.textContent = `${bestContrast} (${bestContrast === '#000000' ? 'Black' : 'White'})`;
+        elContrastWhite.textContent = `${ratioWhite.toFixed(2)}:1`;
+        elContrastBlack.textContent = `${ratioBlack.toFixed(2)}:1`;
+
+        // 6. Update Spectrum Ribbon & Markers
+        drawSpectrumRibbon(params);
+        const pct = ((state.dayOfYear - 1) / (state.yearLength - 1)) * 100;
+        const pctA1 = ((state.anchor1Day - 1) / (state.yearLength - 1)) * 100;
+        const pctA2 = ((state.anchor2Day - 1) / (state.yearLength - 1)) * 100;
+        ribbonPlayhead.style.left = `${Math.min(100, Math.max(0, pct))}%`;
+        ribbonMarkerA1.style.left = `${Math.min(100, Math.max(0, pctA1))}%`;
+        ribbonMarkerA2.style.left = `${Math.min(100, Math.max(0, pctA2))}%`;
+        ribbonReadout.textContent = `H(${elScrubberDay.textContent}) = ${displayHue.toFixed(1)}° (${hex.toUpperCase()})`;
+        ribbonMaxDays.textContent = state.yearLength;
+
+        // 7. Update SVG Curve Graph
+        renderSvgCurve(params, displayHue);
+
+        // 8. Optional Artwork Hue Sync in Section 10
+        const artworks = document.querySelectorAll('.dynamic-artwork');
+        artworks.forEach(svg => {
+          svg.style.filter = state.syncArtwork ? `hue-rotate(${(displayHue - 350).toFixed(0)}deg)` : 'none';
+        });
+
+        // 9. Update Code Viewer
+        updateCodeViewer(params, displayHue);
+      }
+
+      // --- Event Listeners ---
+      elSlider.addEventListener('input', (e) => {
+        state.dayOfYear = parseFloat(e.target.value);
+        updateDesignSystem();
+      });
+
+      elDatePicker.addEventListener('change', (e) => {
+        if (!e.target.value) return;
+        const parts = e.target.value.split('-').map(Number);
+        const picked = new Date(Date.UTC(parts[0], parts[1] - 1, parts[2]));
+        const start = new Date(Date.UTC(parts[0], 0, 1));
+        const diffDays = Math.floor((picked - start) / (1000 * 60 * 60 * 24)) + 1;
+        state.dayOfYear = Math.max(1, Math.min(state.yearLength, diffDays));
+        updateDesignSystem();
+      });
+
+      elLeapToggle.addEventListener('change', (e) => {
+        state.yearLength = e.target.checked ? 366 : 365;
+        if (state.dayOfYear > state.yearLength) state.dayOfYear = state.yearLength;
+        updateDesignSystem();
+      });
+
+      // Preset Pills
+      document.querySelectorAll('.preset-pill').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const val = btn.getAttribute('data-preset-day');
+          if (val === 'today') {
+            const now = new Date();
+            const start = new Date(now.getFullYear(), 0, 0);
+            const diff = now - start;
+            state.dayOfYear = Math.floor(diff / (1000 * 60 * 60 * 24));
+          } else {
+            state.dayOfYear = parseFloat(val);
+          }
+          updateDesignSystem();
+        });
+      });
+
+      // Anchor Configurator Inputs
+      [elA1Day, elA1Hue, elA2Day, elA2Hue].forEach(input => {
+        input.addEventListener('input', () => {
+          state.anchor1Day = parseFloat(elA1Day.value) || 288;
+          state.anchor1Hue = parseFloat(elA1Hue.value) || 330;
+          state.anchor2Day = parseFloat(elA2Day.value) || 349;
+          state.anchor2Hue = parseFloat(elA2Hue.value) || 360;
+          updateDesignSystem();
+        });
+      });
+
+      document.getElementById('btn-reset-anchors').addEventListener('click', () => {
+        state.anchor1Day = 288;
+        state.anchor1Hue = 330;
+        state.anchor2Day = 349;
+        state.anchor2Hue = 360;
+        elA1Day.value = 288;
+        elA1Hue.value = 330;
+        elA2Day.value = 349;
+        elA2Hue.value = 360;
+        updateDesignSystem();
+      });
+
+      // Interactive Scrubbing on Spectrum Ribbon
+      let isDraggingRibbon = false;
+      function scrubRibbonFromEvent(e) {
+        const rect = ribbonContainer.getBoundingClientRect();
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const ratio = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width));
+        state.dayOfYear = Math.round(1 + ratio * (state.yearLength - 1));
+        updateDesignSystem();
+      }
+      ribbonContainer.addEventListener('mousedown', (e) => { isDraggingRibbon = true; scrubRibbonFromEvent(e); });
+      window.addEventListener('mousemove', (e) => { if (isDraggingRibbon) scrubRibbonFromEvent(e); });
+      window.addEventListener('mouseup', () => { isDraggingRibbon = false; });
+      ribbonContainer.addEventListener('touchstart', (e) => { isDraggingRibbon = true; scrubRibbonFromEvent(e); }, { passive: true });
+      ribbonContainer.addEventListener('touchmove', (e) => { if (isDraggingRibbon) scrubRibbonFromEvent(e); }, { passive: true });
+      ribbonContainer.addEventListener('touchend', () => { isDraggingRibbon = false; });
+
+      // Interactive Scrubbing on SVG Curve Plot
+      let isDraggingSvg = false;
+      function scrubSvgFromEvent(e) {
+        const rect = svgCurve.getBoundingClientRect();
+        const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+        const svgX = ((clientX - rect.left) / rect.width) * 640;
+        const ratio = Math.max(0, Math.min(1, (svgX - 50) / 560));
+        state.dayOfYear = Math.round(1 + ratio * (state.yearLength - 1));
+        updateDesignSystem();
+      }
+      svgCurve.addEventListener('mousedown', (e) => { isDraggingSvg = true; scrubSvgFromEvent(e); });
+      window.addEventListener('mousemove', (e) => { if (isDraggingSvg) scrubSvgFromEvent(e); });
+      window.addEventListener('mouseup', () => { isDraggingSvg = false; });
+
+      // Auto-Play Cycle Year
+      function toggleAutoPlay() {
+        state.isPlaying = !state.isPlaying;
+        const labelDesktop = document.getElementById('autoplay-label-desktop');
+        const iconDesktop = document.getElementById('autoplay-icon-desktop');
+
+        if (state.isPlaying) {
+          if (labelDesktop) labelDesktop.textContent = 'Pause Cycle';
+          if (iconDesktop) iconDesktop.innerHTML = '<use href="#icon-pause"></use>';
+          let lastTime = performance.now();
+          const step = (now) => {
+            if (!state.isPlaying) return;
+            if (now - lastTime > 45) {
+              state.dayOfYear = state.dayOfYear >= state.yearLength ? 1 : Math.floor(state.dayOfYear) + 1;
+              updateDesignSystem();
+              lastTime = now;
+            }
+            animFrameId = requestAnimationFrame(step);
+          };
+          animFrameId = requestAnimationFrame(step);
+        } else {
+          if (labelDesktop) labelDesktop.textContent = 'Auto-Cycle Year';
+          if (iconDesktop) iconDesktop.innerHTML = '<use href="#icon-play"></use>';
+          if (animFrameId) cancelAnimationFrame(animFrameId);
+        }
+      }
+
+      document.getElementById('btn-autoplay').addEventListener('click', toggleAutoPlay);
+      document.getElementById('btn-autoplay-desktop').addEventListener('click', toggleAutoPlay);
+
+      // Typography Weight Toggle on Oversized "Aa"
+      const elSpecimenAa = document.getElementById('specimen-aa');
+      document.querySelectorAll('.weight-toggle').forEach(btn => {
+        btn.addEventListener('click', () => {
+          document.querySelectorAll('.weight-toggle').forEach(b => b.classList.remove('text-[var(--color-primary)]'));
+          btn.classList.add('text-[var(--color-primary)]');
+          elSpecimenAa.style.fontWeight = btn.getAttribute('data-weight');
+        });
+      });
+
+      // Interactive Pagination (Section 06)
+      const minimalBtns = document.querySelectorAll('.page-minimal-btn');
+      minimalBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+          minimalBtns.forEach(b => b.classList.remove('is-active'));
+          btn.classList.add('is-active');
+        });
+      });
+      document.querySelector('.page-minimal-next').addEventListener('click', () => {
+        const activeIdx = Array.from(minimalBtns).findIndex(b => b.classList.contains('is-active'));
+        const nextIdx = (activeIdx + 1) % minimalBtns.length;
+        minimalBtns.forEach(b => b.classList.remove('is-active'));
+        minimalBtns[nextIdx].classList.add('is-active');
+      });
+
+      // Semantic Spec Pagination
+      const specPageItems = document.querySelectorAll('#spec-pagination-list .pagination-item');
+      specPageItems.forEach(item => {
+        item.addEventListener('click', (e) => {
+          e.preventDefault();
+          const link = item.querySelector('a');
+          if (!link) return;
+          const target = link.getAttribute('data-spec-page');
+          if (target === 'prev' || target === 'next') return;
+          specPageItems.forEach(li => {
+            li.classList.remove('pagination-item-active');
+            li.removeAttribute('aria-current');
+          });
+          item.classList.add('pagination-item-active');
+          item.setAttribute('aria-current', 'page');
+        });
+      });
+
+      // Artwork Tint Sync Checkbox (Section 10)
+      document.getElementById('toggle-artwork-tint').addEventListener('change', (e) => {
+        state.syncArtwork = e.target.checked;
+        updateDesignSystem();
+      });
+
+      // Section 10A: Interactive Card Topology Surface, .card-pad & Inspector Controls
+      const topoCards = document.querySelectorAll('.topo-card');
+      const topoMedias = document.querySelectorAll('.topo-media');
+      const topoActionBtns = document.querySelectorAll('.topo-action-btn');
+      document.querySelectorAll('.topo-surface-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const surface = btn.getAttribute('data-card-surface');
+          document.querySelectorAll('.topo-surface-btn').forEach(b => {
+            b.className = 'topo-surface-btn px-3 py-1 rounded-full text-[#d7d8d9] hover:text-white transition';
+          });
+          btn.className = 'topo-surface-btn px-3 py-1 rounded-full bg-[var(--color-primary)] text-[var(--color-primary-contrast)] font-semibold transition';
+
+          topoCards.forEach(card => {
+            card.classList.remove('card-dark', 'card-dark-accent', 'card-light');
+            card.classList.add(surface);
+          });
+
+          topoActionBtns.forEach(actionBtn => {
+            actionBtn.classList.remove('button-white', 'button-black');
+            actionBtn.classList.add(surface === 'card-light' ? 'button-black' : 'button-white');
+          });
+        });
+      });
+
+      const elPadToggle = document.getElementById('toggle-card-pad');
+      if (elPadToggle) {
+        elPadToggle.addEventListener('change', (e) => {
+          topoCards.forEach(card => {
+            card.classList.toggle('card-pad', e.target.checked);
+          });
+          topoMedias.forEach(media => {
+            media.classList.toggle('media-rounded-small', e.target.checked);
+          });
+        });
+      }
+
+      const elInspectorToggle = document.getElementById('toggle-card-inspector');
+      const elInspectorDrawer = document.getElementById('card-selector-inspector');
+      if (elInspectorToggle && elInspectorDrawer) {
+        elInspectorToggle.addEventListener('change', (e) => {
+          elInspectorDrawer.style.display = e.target.checked ? 'block' : 'none';
+        });
+      }
+
+      // Code Viewer Tabs
+      document.querySelectorAll('.code-tab-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          state.activeCodeTab = btn.getAttribute('data-code-tab');
+          document.querySelectorAll('.code-tab-btn').forEach(b => {
+            b.className = 'code-tab-btn px-3 py-1.5 rounded-lg font-mono text-xs bg-[#151719] text-[#d7d8d9] border border-[#2e2e3a] hover:border-[var(--color-primary)] transition';
+          });
+          btn.className = 'code-tab-btn px-3 py-1.5 rounded-lg font-mono text-xs bg-[var(--color-primary)] text-[var(--color-primary-contrast)] font-semibold transition';
+          updateDesignSystem();
+        });
+      });
+
+      // Copy Helper & Toast
+      let toastTimeout = null;
+      function copyTextToClipboard(text) {
+        const textarea = document.createElement('textarea');
+        textarea.value = text;
+        textarea.style.position = 'fixed';
+        textarea.style.opacity = '0';
+        document.body.appendChild(textarea);
+        textarea.select();
+        try {
+          document.execCommand('copy');
+        } catch (err) {
+          // Fallback ignored
+        }
+        document.body.removeChild(textarea);
+
+        const toast = document.getElementById('copy-toast');
+        const toastText = document.getElementById('copy-toast-text');
+        toastText.textContent = text.length > 36 ? text.slice(0, 36) + '...' : text;
+        toast.classList.remove('opacity-0', 'translate-y-2');
+        clearTimeout(toastTimeout);
+        toastTimeout = setTimeout(() => {
+          toast.classList.add('opacity-0', 'translate-y-2');
+        }, 2000);
+      }
+
+      document.querySelectorAll('[data-copy]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          copyTextToClipboard(btn.getAttribute('data-copy'));
+        });
+      });
+
+      document.getElementById('btn-copy-code').addEventListener('click', () => {
+        const pre = document.getElementById('code-viewer-pre');
+        copyTextToClipboard(pre.textContent);
+        const label = document.getElementById('copy-code-label');
+        label.textContent = 'Copied!';
+        setTimeout(() => { label.textContent = 'Copy File'; }, 1500);
+      });
+
+      // Initialize on load
+      window.addEventListener('DOMContentLoaded', updateDesignSystem);
+      updateDesignSystem();
+    })();
+  </script>
+</body>
+</html>
